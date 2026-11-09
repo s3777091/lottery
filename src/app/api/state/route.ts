@@ -3,6 +3,8 @@ import { load, save, showState, stateTag } from '@/lib/store';
 import type { Person, Settings, State } from '@/lib/types';
 import { EFFECT_LABEL, isSingleDrawChoice, isWinnerCount } from '@/lib/types';
 import { departmentKey } from '@/lib/eligibility';
+import { requestUser } from '@/lib/auth';
+import { audit } from '@/lib/db';
 
 // Pollers revalidate with If-None-Match; an unchanged state costs a body-less 304.
 export async function GET(req: Request) {
@@ -64,5 +66,10 @@ export async function PUT(req: Request) {
     s.settings = { ...s.settings, ...body.settings };
     if (body.settings.rewardDescription !== undefined) s.settings.rewardDescription = String(body.settings.rewardDescription).trim().slice(0, 240);
   }
+  await audit(requestUser(req), 'state:update', {
+    people: body.people ? body.people.length : undefined,
+    sourceFile: body.sourceFile,
+    settings: body.settings ? Object.keys(body.settings) : undefined,
+  });
   return NextResponse.json(save(s));
 }

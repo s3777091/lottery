@@ -1,5 +1,7 @@
 import { load } from '@/lib/store';
 import ExcelJS from 'exceljs';
+import { requestUser } from '@/lib/auth';
+import { audit } from '@/lib/db';
 
 const esc = (v: string) => (/[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 
@@ -7,6 +9,7 @@ export async function GET(request: Request) {
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   if (format !== 'csv' && format !== 'xlsx') return new Response('Unsupported export format', { status: 400 });
   const s = load();
+  await audit(requestUser(request), 'export', { format });
   const rows = [['STT', 'Họ và Tên', 'English Name', 'Phòng Ban', 'Phần thưởng', 'Thời gian']];
   s.winners.forEach((w) => {
     rows.push([String(rows.length), w.name, w.englishName, w.department, w.prizeDescription || '', new Date(w.time).toLocaleString('vi-VN')]);

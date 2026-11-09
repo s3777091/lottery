@@ -10,3 +10,4 @@ public/videos/*.mp4
 .batch-check-*/
 .env*
 .deploy-credentials.txt
+!.env.example

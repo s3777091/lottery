@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { load, reset, save } from '@/lib/store';
 import type { CommandType } from '@/lib/types';
+import { requestUser } from '@/lib/auth';
+import { audit } from '@/lib/db';
 
 type Body =
   | { type: 'absent'; drawId: string }
@@ -13,6 +15,7 @@ type Body =
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
   const s = { ...load() };
+  if (body.type !== 'command') await audit(requestUser(req), `action:${body.type}`, 'drawId' in body ? { drawId: body.drawId } : undefined);
   switch (body.type) {
     case 'absent': {
       // winner not present: prize goes back, person cannot win again

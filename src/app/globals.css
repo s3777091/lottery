@@ -318,3 +318,10 @@ input:focus, select:focus { border-color: var(--gold); }
 .effect-plan .grid select { padding: 6px 9px; }
 .effect-plan .grid .draw-winner-count { max-width: 96px; padding: 6px 9px; }
 .effect-plan tr.effect-next-row td { background: rgba(246,201,106,.06); }
+
+/* Login (Supabase Auth) */
+.login-card { width: min(380px, 100%); text-align: left; display: grid; gap: 4px; padding: 26px; border-radius: 20px; border: 1px solid var(--line); background: rgba(10, 20, 39, .72); }
+.login-card input { width: 100%; }
+.login-card .btn { justify-content: center; margin-top: 10px; }
+.login-error { margin: 6px 0 0; color: #ffb1a8; font-size: 14px; }
+.admin-user { display: flex; align-items: center; gap: 10px; font-size: 13px; }

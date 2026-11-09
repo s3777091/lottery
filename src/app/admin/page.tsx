@@ -13,9 +13,26 @@ type Tab = 'people' | 'prizes' | 'results' | 'show';
 async function api<T>(url: string, method = 'GET', body?: unknown): Promise<T> {
   // GETs revalidate via ETag (304 when unchanged); writes always go to the server.
   const r = await fetch(url, { method, cache: method === 'GET' ? 'no-cache' : 'no-store', headers: body ? { 'Content-Type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined });
+  // Session ended (signed out elsewhere or refresh token expired): back to the login page.
+  if (r.status === 401) { window.location.href = '/login?next=/admin'; throw new Error('Phiên đăng nhập đã hết hạn.'); }
   const j = await r.json();
   if (!r.ok) throw new Error(j.error || 'Lỗi máy chủ');
   return j as T;
+}
+
+function SignedInUser() {
+  const [email, setEmail] = useState('');
+  useEffect(() => { fetch('/api/auth/me', { cache: 'no-store' }).then((r) => r.json()).then((d) => setEmail(d.user?.email || '')).catch(() => {}); }, []);
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    window.location.href = '/login';
+  }
+  return (
+    <div className="admin-user">
+      {email && <span className="muted">{email}</span>}
+      <button className="btn small ghost" onClick={logout}>Đăng xuất</button>
+    </div>
+  );
 }
 
 export default function AdminPage() {
@@ -47,7 +64,10 @@ export default function AdminPage() {
           <h1>Quản trị quay số</h1>
           <p className="muted">{state.people.length.toLocaleString('vi-VN')} người · {state.winners.length} đã trúng</p>
         </div>
-        <a className="btn projector-link" href="/lottery" target="_blank" rel="noreferrer" aria-label="Mở màn chiếu" title="Mở màn chiếu"><DesktopIcon width={24} height={24} aria-hidden="true" /></a>
+        <div className="admin-user">
+          <SignedInUser />
+          <a className="btn projector-link" href="/lottery" target="_blank" rel="noreferrer" aria-label="Mở màn chiếu" title="Mở màn chiếu"><DesktopIcon width={24} height={24} aria-hidden="true" /></a>
+        </div>
       </header>
       <nav className="admin-tabs">
         {([['people', 'Danh sách người chơi'], ['prizes', 'Nội dung thẻ'], ['results', 'Kết quả'], ['show', 'Màn chiếu & cài đặt']] as [Tab, string][]).map(([k, l]) => (
