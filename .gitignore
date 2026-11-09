@@ -9,3 +9,4 @@ FirstVide.mp4
 public/videos/*.mp4
 .batch-check-*/
 .env*
+.deploy-credentials.txt
