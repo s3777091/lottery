@@ -23,7 +23,8 @@ export interface Winner {
   time: number;
 }
 
-export type VideoQuality = '2k' | '4k';
+// Only 2K clips are shipped; the field stays so existing state.json files remain valid.
+export type VideoQuality = '2k';
 
 export interface Settings {
   videoQuality: VideoQuality;

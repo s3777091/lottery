@@ -57,7 +57,7 @@ export function load(): State {
     s = defaults();
   }
   s.settings = omit({ ...defaults().settings, ...s.settings }, LEGACY_SETTINGS_KEYS);
-  s.settings.videoQuality = s.settings.videoQuality === '4k' ? '4k' : '2k';
+  s.settings.videoQuality = '2k';
   // Keep existing lists readable without inventing missing English names.
   s.people = s.people.map((p) => ({ ...p, englishName: p.englishName || '', department: p.department ?? legacyDepartment(p) }));
   s.winners = s.winners.map((w) => omit({ ...w, englishName: w.englishName || '', department: w.department ?? legacyDepartment(w) }, LEGACY_WINNER_KEYS));

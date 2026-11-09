@@ -17,8 +17,8 @@ export async function GET(req: Request) {
 export async function PUT(req: Request) {
   const body = (await req.json()) as Partial<{ people: Person[]; sourceFile: string; settings: Partial<Settings> }>;
   const s: State = { ...load() };
-  if (body.settings?.videoQuality !== undefined && !['2k', '4k'].includes(body.settings.videoQuality)) {
-    return NextResponse.json({ error: 'Chất lượng video phải là 2K hoặc 4K.' }, { status: 400 });
+  if (body.settings?.videoQuality !== undefined && body.settings.videoQuality !== '2k') {
+    return NextResponse.json({ error: 'Chất lượng video chỉ hỗ trợ 2K.' }, { status: 400 });
   }
   if (body.settings?.departmentWeights !== undefined) {
     const weights = body.settings.departmentWeights;

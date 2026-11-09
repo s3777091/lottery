@@ -4,7 +4,7 @@ import CardPreview from './card-preview';
 import { departmentChances, rebalanceDepartment } from '@/lib/eligibility';
 import { DesktopIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { EffectId, EffectMode, EffectPlanEntry, Settings, VideoQuality, Person, State } from '@/lib/types';
+import type { EffectId, EffectMode, EffectPlanEntry, Settings, Person, State } from '@/lib/types';
 import { EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
 import { guessNameColumn, guessEnglishNameColumn, guessDepartmentColumn, parseFile, type Table } from '@/lib/parse';
 
@@ -287,13 +287,6 @@ function ShowTab({ state, onChange, say }: { state: State; onChange: (s: State) 
           </select>
         </label>
         <DrawPlanEditor state={state} settings={settings} setSettings={setSettings} onChange={onChange} say={say} />
-        <label className="field"><span>Chất lượng video hiệu ứng</span>
-          <select value={settings.videoQuality || '2k'} onChange={(e) => setSettings({ ...settings, videoQuality: e.target.value as VideoQuality })}>
-            <option value="2k">2K · 2560 × 1440</option>
-            <option value="4k">4K · 3840 × 2160</option>
-          </select>
-        </label>
-        <p className="muted">Áp dụng cho cả 6 hiệu ứng từ lượt quay tiếp theo. Video được nâng độ phân giải từ bản gốc Full HD, giữ nguyên tỷ lệ và thời gian.</p>
         <label className="check">
           <input type="checkbox" checked={Boolean(settings.hideWinnerName)} onChange={(e) => setSettings({ ...settings, hideWinnerName: e.target.checked })} />
           <span>Ẩn tên được chọn — bật thì cảnh cuối video không hiện tên (cả 2 hiệu ứng), tên chỉ lộ ở thẻ kết quả</span>

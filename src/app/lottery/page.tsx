@@ -90,7 +90,7 @@ export default function LotteryPage() {
       const w = Math.min(vw, (vh * 16) / 9), h = (w * 9) / 16;
       el.style.width = `${w}px`;
       el.style.height = `${h}px`;
-      overlay.current?.resize(w, h, qualityRef.current === '4k' ? 3840 : 2560);
+      overlay.current?.resize(w, h, 2560);
     };
     import('@/engine/overlay').then(({ Overlay }) => {
       if (!alive || !canvasRef.current) return;
