@@ -4,8 +4,8 @@ import CardPreview from './card-preview';
 import { departmentChances, rebalanceDepartment } from '@/lib/eligibility';
 import { DesktopIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { EffectId, EffectMode, EffectPlanEntry, Settings, Person, State } from '@/lib/types';
-import { EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
+import type { EffectId, EffectMode, EffectPlanEntry, ListMode, Settings, Person, State } from '@/lib/types';
+import { LIST_LABEL, LIST_MODES, EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
 import { guessNameColumn, guessEnglishNameColumn, guessDepartmentColumn, parseFile, type Table } from '@/lib/parse';
 
 type Tab = 'people' | 'prizes' | 'results' | 'show';
@@ -31,6 +31,33 @@ function SignedInUser() {
     <div className="admin-user">
       {email && <span className="muted">{email}</span>}
       <button className="btn small ghost" onClick={logout}>Đăng xuất</button>
+    </div>
+  );
+}
+
+/** Two buttons: the rehearsal list and the uploaded real list. Each keeps its own results. */
+function ListSwitch({ state, onChange, say }: { state: State; onChange: (s: State) => void; say: (m: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  async function pick(mode: ListMode) {
+    if (mode === state.mode || busy) return;
+    const target = state.lists[mode];
+    if (!window.confirm(`Chuyển sang ${LIST_LABEL[mode].toLowerCase()} (${target.people.toLocaleString('vi-VN')} người, ${target.winners} đã trúng)?
+Màn chiếu sẽ quay theo danh sách này từ lượt tiếp theo.`)) return;
+    setBusy(true);
+    try {
+      onChange(await api<State>('/api/state', 'PUT', { mode }));
+      say(`Đang dùng ${LIST_LABEL[mode].toLowerCase()}.`);
+    } catch (e) { say((e as Error).message); }
+    setBusy(false);
+  }
+  return (
+    <div className="list-switch" role="group" aria-label="Chọn danh sách">
+      {LIST_MODES.map((mode) => (
+        <button key={mode} className={`list-switch-btn ${mode}${state.mode === mode ? ' active' : ''}`} aria-pressed={state.mode === mode} disabled={busy} onClick={() => pick(mode)}>
+          <b>{LIST_LABEL[mode]}</b>
+          <small>{state.lists[mode].people.toLocaleString('vi-VN')} người · {state.lists[mode].winners} đã trúng</small>
+        </button>
+      ))}
     </div>
   );
 }
@@ -62,8 +89,9 @@ export default function AdminPage() {
       <header className="admin-head">
         <div>
           <h1>Quản trị quay số</h1>
-          <p className="muted">{state.people.length.toLocaleString('vi-VN')} người · {state.winners.length} đã trúng</p>
+          <p className="muted">{LIST_LABEL[state.mode]}: {state.people.length.toLocaleString('vi-VN')} người · {state.winners.length} đã trúng</p>
         </div>
+        <ListSwitch state={state} onChange={setState} say={say} />
         <div className="admin-user">
           <SignedInUser />
           <a className="btn projector-link" href="/lottery" target="_blank" rel="noreferrer" aria-label="Mở màn chiếu" title="Mở màn chiếu"><DesktopIcon width={24} height={24} aria-hidden="true" /></a>
@@ -141,7 +169,7 @@ function PeopleTab({ state, onSaved, say }: { state: State; onSaved: (s: State) 
       <div className="upload">
         <label className="drop">
           <input type="file" accept=".xlsx,.csv,.tsv,.txt" onChange={(e) => onFile(e.target.files?.[0])} />
-          <b>Chọn file danh sách (.xlsx hoặc .csv)</b>
+          <b>Chọn file cho {LIST_LABEL[state.mode].toLowerCase()} (.xlsx hoặc .csv)</b>
           <span>STT · Họ và Tên · English Name · Phòng Ban. English Name hiển thị trên video; phòng ban là văn bản.</span>
         </label>
       </div>
@@ -179,7 +207,7 @@ function PeopleTab({ state, onSaved, say }: { state: State; onSaved: (s: State) 
       )}
 
       <div className="row between">
-        <h2>Danh sách hiện tại <small className="muted">{state.people.length.toLocaleString('vi-VN')} người</small></h2>
+        <h2>{LIST_LABEL[state.mode]} <small className="muted">{state.people.length.toLocaleString('vi-VN')} người</small></h2>
         <input className="search" placeholder="Tìm tên…" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
       {state.people.length === 0 ? (
@@ -235,7 +263,7 @@ function ResultsTab({ state, onChange }: { state: State; onChange: (s: State) =>
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `danh-sach-trung-giai.${format}`;
+        link.download = `danh-sach-trung-giai${state.mode === 'test' ? '-thu' : ''}.${format}`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -322,7 +350,7 @@ function ShowTab({ state, onChange, say }: { state: State; onChange: (s: State) 
             } catch (e) { say((e as Error).message); }
           }}>Lưu cài đặt</button>
           <button className="btn danger" onClick={async () => {
-            if (!window.confirm('Khôi phục toàn bộ về mặc định (xoá danh sách, kết quả)?')) return;
+            if (!window.confirm(`Khôi phục cài đặt mặc định và xoá ${LIST_LABEL[state.mode].toLowerCase()} cùng kết quả của nó? Danh sách còn lại giữ nguyên.`)) return;
             const reset = await api<State>('/api/action', 'POST', { type: 'resetAll' });
             setSettings(reset.settings);
             onChange(reset);

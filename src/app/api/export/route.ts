@@ -8,8 +8,9 @@ const esc = (v: string) => (/[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 export async function GET(request: Request) {
   const format = new URL(request.url).searchParams.get('format') || 'csv';
   if (format !== 'csv' && format !== 'xlsx') return new Response('Unsupported export format', { status: 400 });
-  const s = load();
-  await audit(requestUser(request), 'export', { format });
+  const s = await load();
+  await audit(requestUser(request), 'export', { format, list: s.mode });
+  const suffix = s.mode === 'test' ? '-thu' : '';
   const rows = [['STT', 'Họ và Tên', 'English Name', 'Phòng Ban', 'Phần thưởng', 'Thời gian']];
   s.winners.forEach((w) => {
     rows.push([String(rows.length), w.name, w.englishName, w.department, w.prizeDescription || '', new Date(w.time).toLocaleString('vi-VN')]);
@@ -27,14 +28,14 @@ export async function GET(request: Request) {
     return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': 'attachment; filename="danh-sach-trung-giai.xlsx"',
+        'Content-Disposition': `attachment; filename="danh-sach-trung-giai${suffix}.xlsx"`,
       },
     });
   }
   return new Response(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="danh-sach-trung-giai.csv"',
+      'Content-Disposition': `attachment; filename="danh-sach-trung-giai${suffix}.csv"`,
     },
   });
 }

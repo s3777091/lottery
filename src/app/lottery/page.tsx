@@ -291,6 +291,7 @@ export default function LotteryPage() {
   const showWinnerList = groupDraw || effectFailed;
   return (
     <div className={`show phase-${phase}${revealed ? ' revealed' : ''}`}>
+      {show?.mode === 'test' && <div className="mode-badge">CHẾ ĐỘ THỬ</div>}
       <div className="stage" ref={stageRef}>
         {EFFECT_IDS.map((id) => (
           <video

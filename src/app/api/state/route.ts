@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { load, save, showState, stateTag } from '@/lib/store';
+import { load, save, setMode, showState, stateTag, withLock } from '@/lib/store';
 import type { Person, Settings, State } from '@/lib/types';
-import { EFFECT_LABEL, isSingleDrawChoice, isWinnerCount } from '@/lib/types';
+import { EFFECT_LABEL, isListMode, isSingleDrawChoice, isWinnerCount } from '@/lib/types';
 import { departmentKey } from '@/lib/eligibility';
 import { requestUser } from '@/lib/auth';
 import { audit } from '@/lib/db';
@@ -9,16 +9,23 @@ import { audit } from '@/lib/db';
 // Pollers revalidate with If-None-Match; an unchanged state costs a body-less 304.
 export async function GET(req: Request) {
   const view = new URL(req.url).searchParams.get('view') === 'show' ? 'show' : 'full';
-  const etag = stateTag(view);
+  const etag = await stateTag(view);
   const headers = { 'Cache-Control': 'private, no-cache', ETag: etag };
   if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
-  const s = load();
+  const s = await load();
   return NextResponse.json(view === 'show' ? showState(s) : s, { headers });
 }
 
 export async function PUT(req: Request) {
-  const body = (await req.json()) as Partial<{ people: Person[]; sourceFile: string; settings: Partial<Settings> }>;
-  const s: State = { ...load() };
+  const body = (await req.json()) as Partial<{ people: Person[]; sourceFile: string; settings: Partial<Settings>; mode: unknown }>;
+  // Switching between the test and the real list is its own request.
+  if (body.mode !== undefined) {
+    if (!isListMode(body.mode)) return NextResponse.json({ error: 'Danh sách không hợp lệ.' }, { status: 400 });
+    const mode = body.mode;
+    const next = await withLock(() => setMode(mode));
+    await audit(requestUser(req), `mode:${mode}`);
+    return NextResponse.json(next);
+  }
   if (body.settings?.videoQuality !== undefined && body.settings.videoQuality !== '2k') {
     return NextResponse.json({ error: 'Chất lượng video chỉ hỗ trợ 2K.' }, { status: 400 });
   }
@@ -55,6 +62,8 @@ export async function PUT(req: Request) {
     while (end > 0 && plan[end - 1] === '') end--;
     body.settings.effectPlan = plan.slice(0, end);
   }
+  return withLock(async () => {
+  const s: State = { ...(await load()) };
   if (Array.isArray(body.people)) {
     s.people = body.people
       .filter((p) => p && typeof p.name === 'string' && p.name.trim())
@@ -67,9 +76,11 @@ export async function PUT(req: Request) {
     if (body.settings.rewardDescription !== undefined) s.settings.rewardDescription = String(body.settings.rewardDescription).trim().slice(0, 240);
   }
   await audit(requestUser(req), 'state:update', {
+    list: s.mode,
     people: body.people ? body.people.length : undefined,
     sourceFile: body.sourceFile,
     settings: body.settings ? Object.keys(body.settings) : undefined,
   });
-  return NextResponse.json(save(s));
+  return NextResponse.json(await save(s));
+  });
 }

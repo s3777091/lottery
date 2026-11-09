@@ -1,15 +1,37 @@
 import 'server-only';
-import { Pool } from 'pg';
+import { Pool, type QueryResultRow } from 'pg';
 import type { AuthUser } from './auth';
 
-// The separate `lottery` database (see docs/supabase.md). It is optional: without DATABASE_URL the app
-// still runs, it just keeps no login history or audit log. Failures here never block the show.
+// The separate `lottery` database (see docs/supabase.md). With DATABASE_URL set it holds the show itself
+// (app_state, datasets), the admins who signed in and the audit log. Without it the show is kept in
+// data/state.json and nothing is logged.
 let pool: Pool | null | undefined;
 function db() {
-  if (pool === undefined) pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, max: 3, connectionTimeoutMillis: 3000, query_timeout: 5000 }) : null;
+  if (pool === undefined) pool = process.env.DATABASE_URL ? new Pool({ connectionString: process.env.DATABASE_URL, max: 5, connectionTimeoutMillis: 3000, query_timeout: 10000 }) : null;
   return pool;
 }
 
+export const dbEnabled = () => Boolean(process.env.DATABASE_URL);
+
+export function query<R extends QueryResultRow>(sql: string, params: unknown[] = []) {
+  return db()!.query<R>(sql, params);
+}
+
+export async function transaction(fn: (q: (sql: string, params?: unknown[]) => Promise<unknown>) => Promise<void>) {
+  const client = await db()!.connect();
+  try {
+    await client.query('begin');
+    await fn((sql, params = []) => client.query(sql, params));
+    await client.query('commit');
+  } catch (err) {
+    await client.query('rollback').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/** Logging never blocks the show: failures are reported to the server log only. */
 async function run(sql: string, params: unknown[]) {
   const p = db();
   if (!p) return;

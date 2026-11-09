@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-import { load, reset, save } from '@/lib/store';
+import { load, reset, save, withLock } from '@/lib/store';
 import type { CommandType } from '@/lib/types';
 import { requestUser } from '@/lib/auth';
 import { audit } from '@/lib/db';
@@ -14,8 +14,9 @@ type Body =
 
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
-  const s = { ...load() };
-  if (body.type !== 'command') await audit(requestUser(req), `action:${body.type}`, 'drawId' in body ? { drawId: body.drawId } : undefined);
+  return withLock(async () => {
+  const s = { ...(await load()) };
+  if (body.type !== 'command') await audit(requestUser(req), `action:${body.type}`, { list: s.mode, ...('drawId' in body ? { drawId: body.drawId } : {}) });
   switch (body.type) {
     case 'absent': {
       // winner not present: prize goes back, person cannot win again
@@ -35,12 +36,13 @@ export async function POST(req: Request) {
       s.drawCount = 0;
       break;
     case 'resetAll':
-      return NextResponse.json(reset());
+      return NextResponse.json(await reset());
     case 'command':
       s.command = { id: crypto.randomUUID(), type: body.command, at: Date.now() };
       break;
     default:
       return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   }
-  return NextResponse.json(save(s));
+  return NextResponse.json(await save(s));
+  });
 }

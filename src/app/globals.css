@@ -325,3 +325,14 @@ input:focus, select:focus { border-color: var(--gold); }
 .login-card .btn { justify-content: center; margin-top: 10px; }
 .login-error { margin: 6px 0 0; color: #ffb1a8; font-size: 14px; }
 .admin-user { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+
+/* Test / real list switch (admin header) and the projector's test badge */
+.list-switch { display: inline-flex; gap: 6px; padding: 4px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); }
+.list-switch-btn { display: grid; gap: 2px; text-align: left; padding: 8px 14px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; }
+.list-switch-btn b { font-size: 14px; }
+.list-switch-btn small { font-size: 11px; }
+.list-switch-btn:hover:not(:disabled):not(.active) { border-color: var(--line); }
+.list-switch-btn.active.test { color: #2a1d04; background: #f2c14e; }
+.list-switch-btn.active.real { color: #04230f; background: #5fd38a; }
+.list-switch-btn.active small { opacity: .8; }
+.mode-badge { position: absolute; top: 14px; left: 14px; z-index: 30; padding: 5px 10px; border-radius: 8px; font: 700 12px/1 var(--ui); letter-spacing: .08em; color: #2a1d04; background: rgba(242, 193, 78, .9); pointer-events: none; }

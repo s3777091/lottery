@@ -53,20 +53,40 @@ export interface Command {
   at: number;
 }
 
-export interface State {
-  version: number;
+/** Two independent player lists: a rehearsal list and the uploaded real one. Settings are shared. */
+export type ListMode = 'test' | 'real';
+export const LIST_MODES: ListMode[] = ['test', 'real'];
+export const LIST_LABEL: Record<ListMode, string> = { test: 'Danh sách thử', real: 'Danh sách thật' };
+export const isListMode = (v: unknown): v is ListMode => v === 'test' || v === 'real';
+
+/** Everything that belongs to one list; switching lists keeps each one's results apart. */
+export interface Dataset {
   people: Person[];
   sourceFile: string;
   winners: Winner[];
   excluded: string[];
+  drawCount: number;
+}
+
+export interface ListSummary {
+  people: number;
+  winners: number;
+  sourceFile: string;
+}
+
+/** The active list flattened together with the shared settings, plus a summary of both lists. */
+export interface State extends Dataset {
+  version: number;
+  mode: ListMode;
   settings: Settings;
   command: Command | null;
-  drawCount: number;
+  lists: Record<ListMode, ListSummary>;
 }
 
 /** Lightweight view for the projector page. */
 export interface ShowState {
   version: number;
+  mode: ListMode;
   settings: Settings;
   eligible: number;
   command: Command | null;
