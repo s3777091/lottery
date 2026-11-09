@@ -1,0 +1,8 @@
+{"id":"effect3-male","video":"/videos/effect3-male.mp4","vortex":14,"moon":14.7,"duration":24.8,"fps":30,"width":1920,"height":1080,"columns":[],"card":{"x":960,"y":580,"s":0.95},
+"fireworks":{"shots":[{"t":4.9,"x":0.18,"y":0.12,"c":"cyan","rocket":{"x0":0.22,"dur":0.8}},
+ {"t":5.15,"x":0.82,"y":0.3,"c":"cyan","size":96,"to":{"t":6,"x":0.77,"y":0.25},"mix":0.35},
+ {"t":5.9,"x":0.52,"y":0.08,"c":"pink","rocket":{"x0":0.56,"dur":0.8}},
+ {"t":6.6,"x":0.4,"y":0.3,"c":"purple","rocket":{"x0":0.36,"dur":0.8}},
+ {"t":7,"x":0.15,"y":0.38,"c":"green","rocket":{"x0":0.12,"dur":0.8}},
+ {"t":7.4,"x":0.3,"y":0.12,"c":"blue","rocket":{"x0":0.34,"dur":0.8}},
+ {"t":8,"x":0.86,"y":0.13,"c":"red","to":{"t":8.4,"x":0.9,"y":0.22}}],"winner":{"t":8.8,"x":0.47,"y":0.52,"c":"cyan","release":10.5,"hand":{"x":0.56,"y":0.5}}}}

@@ -1,0 +1,11 @@
+node_modules
+.next
+data
+next-env.d.ts
+*.tsbuildinfo
+FirstVide.mp4
+
+# Video clips live in MEDIA_DIR (default D:\jetsona\storage\Permission\Data)
+public/videos/*.mp4
+.batch-check-*/
+.env*

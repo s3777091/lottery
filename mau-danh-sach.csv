@@ -1,0 +1,501 @@
+﻿STT,Họ và Tên,English Name,Phòng Ban
+1,Hoàng Ngọc Minh,Drake Hoang,Kinh doanh
+2,Dương Ngọc Mai,Milan Duong,Hành chính
+3,Nguyễn Bảo Yến,Victoria Nguyen,Hành chính
+4,Vũ Gia Phong,Zephyr Vu,Kế toán
+5,Nguyễn Hoàng Giang,Mila Nguyen,Sản xuất
+6,Lê Kim Hùng,Roman Le,AI
+7,Hồ Xuân Tú,Forrest Ho,Marketing
+8,Võ Xuân Khoa,Faye Vo,IT
+9,Đặng Ngọc Quân,Harvey Dang,Nhân sự
+10,Lê Thu Nam,Sean Le,Kinh doanh
+11,Hoàng Quốc Tú,Josiah Hoang,Kỹ thuật
+12,Ngô Ngọc Hoa,Rocco Ngo,Kinh doanh
+13,Võ Thanh Sơn,Wesley Vo,Hành chính
+14,Trần Gia Yến,Enzo Tran,Hành chính
+15,Đặng Xuân Uyên,Elodie Dang,Kỹ thuật
+16,Trần Xuân An,Haven Tran,Kế toán
+17,Võ Kim Khoa,Zane Vo,Hành chính
+18,Ngô Xuân Giang,Pierce Ngo,Marketing
+19,Nguyễn Kim Khánh,Dante Nguyen,Kỹ thuật
+20,Đặng Ngọc An,Jaxon Dang,Hành chính
+21,Dương Hữu Phong,Silas Duong,Marketing
+22,Phạm Bảo Hương,Opal Pham,Kế toán
+23,Lý Thanh Hạnh,Sterling Ly,Nhân sự
+24,Trần Hữu Vy,Maisie Tran,Kế toán
+25,Vũ Ngọc Hùng,Luna Vu,Sản xuất
+26,Đặng Quốc Minh,Sidney Dang,AI
+27,Đỗ Kim Sơn,Phoenix Do,Kỹ thuật
+28,Hồ Ngọc Uyên,Leah Ho,Kinh doanh
+29,Dương Ngọc Hà,Onyx Duong,Kỹ thuật
+30,Dương Ngọc Nam,Georgia Duong,Nhân sự
+31,Lê Minh Quân,Malcolm Le,Kỹ thuật
+32,Lê Hoàng Quỳnh,Oscar Le,Nhân sự
+33,Hồ Văn Nam,Charlie Ho,Kinh doanh
+34,Phan Ngọc Sơn,Orion Phan,Nhân sự
+35,Hồ Ngọc Khoa,Rafael Ho,Hành chính
+36,Huỳnh Minh An,Briar Huynh,IT
+37,Dương Quốc Ngân,Lorenzo Duong,Nhân sự
+38,Phạm Thị Hùng,Ian Pham,Sản xuất
+39,Trần Thanh Tú,Noelle Tran,AI
+40,Lý Văn Hạnh,Presley Ly,IT
+41,Đặng Đức Thảo,Sienna Dang,Sản xuất
+42,Ngô Bảo Khoa,Jasper Ngo,AI
+43,Đặng Ngọc Mai,Marcus Dang,Marketing
+44,Lý Minh Phúc,Leo Ly,Marketing
+45,Vũ Thị Quân,Kingston Vu,IT
+46,Lê Quốc Tâm,Emma Le,AI
+47,Phạm Hữu Tuấn,Taylor Pham,IT
+48,Bùi Thu Phong,Sadie Bui,Nhân sự
+49,Phan Kim Hạnh,Avalon Phan,Sản xuất
+50,Bùi Hoàng Long,Quentin Bui,Hành chính
+51,Lý Văn Long,Mason Ly,Marketing
+52,Đặng Ngọc Minh,Seth Dang,Hành chính
+53,Hoàng Thanh Minh,Damien Hoang,Hành chính
+54,Đỗ Minh Tâm,Lena Do,Marketing
+55,Phạm Gia Hải,Hunter Pham,Marketing
+56,Hoàng Hoàng Quân,Willow Hoang,Marketing
+57,Huỳnh Hoàng Tâm,Bianca Huynh,Nhân sự
+58,Lê Thanh Quân,Ella Le,Hành chính
+59,Dương Thị Hà,Mia Duong,Kế toán
+60,Hoàng Gia Hạnh,Cleo Hoang,AI
+61,Võ Kim Hoa,Peyton Vo,Sản xuất
+62,Lê Bảo Hạnh,Eric Le,Hành chính
+63,Võ Quốc Quỳnh,Parker Vo,Sản xuất
+64,Phan Ngọc Quân,Jack Phan,Marketing
+65,Lê Hoàng Quỳnh,Reid Le,Sản xuất
+66,Đặng Hữu Tuấn,Zion Dang,Sản xuất
+67,Hoàng Gia Tú,Vaughn Hoang,Kỹ thuật
+68,Hồ Đức Phúc,Royce Ho,Hành chính
+69,Phạm Gia Bình,Edith Pham,Marketing
+70,Phạm Thanh Tâm,Thea Pham,Sản xuất
+71,Phạm Bảo Ngân,Jade Pham,Nhân sự
+72,Huỳnh Bảo Lan,Tobias Huynh,Kế toán
+73,Ngô Kim Quỳnh,Rhys Ngo,Hành chính
+74,Lê Hoàng Hùng,Quinn Le,Kế toán
+75,Nguyễn Bảo Quỳnh,River Nguyen,Kỹ thuật
+76,Hồ Hữu Hoa,Holly Ho,Sản xuất
+77,Đặng Đức Anh,Giselle Dang,Hành chính
+78,Nguyễn Hoàng Bình,Ronan Nguyen,Kỹ thuật
+79,Nguyễn Đức Hùng,Asher Nguyen,Nhân sự
+80,Đặng Thu Uyên,Natalie Dang,Nhân sự
+81,Vũ Văn Hoa,Talia Vu,Marketing
+82,Dương Hữu Anh,Shane Duong,Kế toán
+83,Đỗ Văn Yến,Fiona Do,Hành chính
+84,Bùi Đức Hùng,Zelda Bui,Hành chính
+85,Dương Ngọc Hương,Xavier Duong,IT
+86,Ngô Thanh Hiếu,Nolan Ngo,Hành chính
+87,Lê Kim Quỳnh,Maeve Le,Marketing
+88,Lê Xuân Dũng,Paige Le,Kế toán
+89,Hồ Minh Dũng,Kendall Ho,Sản xuất
+90,Hoàng Kim Uyên,Scarlett Hoang,Hành chính
+91,Hồ Bảo Mai,Iris Ho,Sản xuất
+92,Phạm Kim Ngân,Blake Pham,Sản xuất
+93,Dương Thanh Linh,Easton Duong,Marketing
+94,Vũ Quốc Duy,Valentina Vu,Kỹ thuật
+95,Hoàng Quốc Tú,Frankie Hoang,Hành chính
+96,Hồ Văn Hương,Atlas Ho,Kế toán
+97,Bùi Thu Hà,Estelle Bui,Kinh doanh
+98,Đỗ Đức Ngân,Wyatt Do,Kỹ thuật
+99,Dương Ngọc Quân,Ava Duong,Marketing
+100,Lê Thanh Dũng,Summer Le,Marketing
+101,Lê Gia Phong,Bella Le,Hành chính
+102,Lê Bảo Tú,Tucker Le,Marketing
+103,Huỳnh Ngọc Thắng,Maya Huynh,AI
+104,Lê Hữu Giang,Everett Le,IT
+105,Lý Gia Nam,Matteo Ly,Sản xuất
+106,Vũ Văn Trang,Margot Vu,Marketing
+107,Hoàng Hoàng Thảo,Cara Hoang,Kỹ thuật
+108,Đỗ Ngọc An,Jamie Do,Kế toán
+109,Trần Văn Minh,Kieran Tran,Kỹ thuật
+110,Đỗ Thanh Tuấn,Killian Do,Kế toán
+111,Trần Ngọc Nhung,Odin Tran,Nhân sự
+112,Hoàng Quốc Tâm,Finley Hoang,AI
+113,Huỳnh Bảo Trang,Vincent Huynh,Sản xuất
+114,Nguyễn Hoàng Uyên,Maxwell Nguyen,Kinh doanh
+115,Võ Thanh Mai,Damon Vo,Kinh doanh
+116,Phạm Hoàng Hiếu,Logan Pham,Marketing
+117,Huỳnh Thanh Quân,Indigo Huynh,Sản xuất
+118,Nguyễn Kim Linh,Phoebe Nguyen,IT
+119,Võ Hoàng Hải,Joanna Vo,Kỹ thuật
+120,Lê Thanh Tú,Holden Le,AI
+121,Ngô Hoàng Linh,Leon Ngo,Hành chính
+122,Đỗ Minh Phúc,Griffin Do,Hành chính
+123,Hoàng Xuân Trang,Alice Hoang,Hành chính
+124,Vũ Thị Minh,Sophie Vu,Kinh doanh
+125,Lê Hoàng Dũng,Lennox Le,Kế toán
+126,Hoàng Thị Hà,Christian Hoang,IT
+127,Đỗ Đức Hoa,Sky Do,AI
+128,Phan Ngọc Nhung,Chloe Phan,Kế toán
+129,Hồ Gia Trang,Bellamy Ho,Kế toán
+130,Dương Thị Tú,Isaac Duong,Kế toán
+131,Phan Quốc An,Elena Phan,IT
+132,Hoàng Thị Nhung,Mabel Hoang,Nhân sự
+133,Hồ Đức Châu,Patrick Ho,Marketing
+134,Lý Xuân Khánh,Emmett Ly,Kỹ thuật
+135,Hồ Bảo Phúc,Adrian Ho,Kế toán
+136,Đặng Bảo Hương,Remington Dang,AI
+137,Đặng Ngọc Bình,Nicholas Dang,Kinh doanh
+138,Đỗ Hữu Minh,Yara Do,IT
+139,Lê Minh Quỳnh,Grace Le,AI
+140,Đặng Thanh Mai,Kai Dang,Nhân sự
+141,Phạm Văn Sơn,Callum Pham,Sản xuất
+142,Phạm Minh Phúc,Cora Pham,IT
+143,Trần Kim Thắng,Esme Tran,Nhân sự
+144,Hoàng Xuân An,Jasmine Hoang,Sản xuất
+145,Võ Xuân An,Sullivan Vo,AI
+146,Trần Gia Uyên,Dominic Tran,Nhân sự
+147,Võ Thanh Thảo,Leona Vo,Hành chính
+148,Hoàng Hoàng Anh,Theo Hoang,Kế toán
+149,Lý Hữu Hiếu,Ocean Ly,Kinh doanh
+150,Vũ Bảo Giang,Naomi Vu,Nhân sự
+151,Vũ Thanh Minh,Sage Vu,Kế toán
+152,Phan Đức Ngân,Viola Phan,Nhân sự
+153,Ngô Ngọc Nhung,Olivia Ngo,IT
+154,Vũ Minh Thảo,Eloise Vu,Sản xuất
+155,Phan Xuân Nam,Nico Phan,Nhân sự
+156,Hoàng Thu Khánh,Hugo Hoang,Kế toán
+157,Bùi Văn Thắng,Raphael Bui,AI
+158,Lý Xuân Châu,Rory Ly,Hành chính
+159,Nguyễn Thị Bình,Florence Nguyen,Nhân sự
+160,Vũ Xuân Duy,Miriam Vu,Kinh doanh
+161,Huỳnh Đức Duy,Reese Huynh,Nhân sự
+162,Hồ Ngọc Vy,Lucas Ho,Kế toán
+163,Lý Bảo Tâm,Stefan Ly,Hành chính
+164,Bùi Thị Ngân,Kiara Bui,Nhân sự
+165,Võ Thanh Mai,Cecilia Vo,Marketing
+166,Võ Bảo Nhung,Greta Vo,Marketing
+167,Ngô Thu Trang,Arlo Ngo,Sản xuất
+168,Phan Quốc Tuấn,Zora Phan,Sản xuất
+169,Hồ Thanh Anh,Daphne Ho,Nhân sự
+170,Phạm Quốc Tuấn,Sabrina Pham,Marketing
+171,Nguyễn Văn Phúc,Austin Nguyen,Hành chính
+172,Trần Đức Hà,Emery Tran,Kế toán
+173,Lý Gia Anh,Penelope Ly,Kỹ thuật
+174,Phạm Kim Duy,Dallas Pham,Kinh doanh
+175,Ngô Thị Khánh,Cooper Ngo,Marketing
+176,Đỗ Xuân Minh,Robin Do,Kế toán
+177,Dương Thị Quỳnh,Dakota Duong,Kỹ thuật
+178,Võ Ngọc Phúc,Kaia Vo,Sản xuất
+179,Võ Hữu Anh,Vera Vo,Marketing
+180,Vũ Xuân Sơn,Remy Vu,Kế toán
+181,Bùi Hữu Hiếu,Colin Bui,Sản xuất
+182,Lý Minh Lan,Riley Ly,Marketing
+183,Nguyễn Hoàng Anh,Liam Nguyen,Kế toán
+184,Đặng Minh Hoa,Drew Dang,Nhân sự
+185,Đặng Xuân Lan,Elise Dang,Hành chính
+186,Đỗ Quốc An,Octavia Do,Kỹ thuật
+187,Nguyễn Hoàng Tú,Lane Nguyen,IT
+188,Bùi Văn Linh,Mira Bui,Kỹ thuật
+189,Đặng Xuân Yến,Ethan Dang,Kỹ thuật
+190,Ngô Xuân Nhung,Cillian Ngo,Kinh doanh
+191,Hồ Xuân Ngân,Joel Ho,Nhân sự
+192,Lý Đức Quân,Elias Ly,Marketing
+193,Bùi Kim Linh,Lucian Bui,Hành chính
+194,Phan Thu Uyên,Dean Phan,Kỹ thuật
+195,Lê Bảo Anh,Cole Le,AI
+196,Đặng Quốc Khánh,Piper Dang,Nhân sự
+197,Dương Thị Uyên,Jordan Duong,Kế toán
+198,Bùi Gia Thắng,Daisy Bui,Hành chính
+199,Ngô Thu Anh,Lachlan Ngo,IT
+200,Nguyễn Văn Nhung,Poppy Nguyen,AI
+201,Đỗ Thị Quỳnh,Lucille Do,Sản xuất
+202,Đỗ Thu Mai,Ryan Do,Hành chính
+203,Dương Hoàng Dũng,Levi Duong,Hành chính
+204,Huỳnh Quốc Tâm,Nora Huynh,Kế toán
+205,Hoàng Đức Long,Shiloh Hoang,Kế toán
+206,Phạm Ngọc Trang,Felix Pham,Kỹ thuật
+207,Vũ Thu Nam,Marley Vu,Kinh doanh
+208,Phan Gia Khoa,Skye Phan,Sản xuất
+209,Lý Văn Nhung,Travis Ly,Sản xuất
+210,Lê Kim Hải,Carson Le,Hành chính
+211,Võ Thanh Hoa,Archer Vo,Kỹ thuật
+212,Huỳnh Thu Hương,Jayden Huynh,Sản xuất
+213,Võ Hữu Linh,Sebastian Vo,Kỹ thuật
+214,Dương Bảo Hạnh,Violet Duong,Nhân sự
+215,Lý Ngọc Uyên,Oliver Ly,Sản xuất
+216,Vũ Kim Hiếu,Matilda Vu,Kinh doanh
+217,Huỳnh Bảo Duy,Morgan Huynh,Marketing
+218,Trần Quốc Nam,Lara Tran,Sản xuất
+219,Phan Thị Khánh,Sunny Phan,Hành chính
+220,Trần Ngọc Mai,Harriet Tran,Kinh doanh
+221,Nguyễn Xuân An,Aurora Nguyen,Marketing
+222,Lê Xuân Khoa,Serena Le,Kế toán
+223,Lê Văn Hải,Freya Le,Marketing
+224,Phan Kim Lan,Madeleine Phan,Kế toán
+225,Nguyễn Kim An,Helena Nguyen,Kỹ thuật
+226,Đỗ Thu Hoa,Tessa Do,IT
+227,Vũ Ngọc Quân,Paris Vu,Sản xuất
+228,Lý Đức Châu,Teagan Ly,AI
+229,Nguyễn Minh Bình,Jude Nguyen,Hành chính
+230,Lý Bảo Hương,Isla Ly,Kỹ thuật
+231,Ngô Thanh Khánh,Zachary Ngo,IT
+232,Phan Quốc Yến,Selena Phan,Kinh doanh
+233,Vũ Thị Khoa,Lily Vu,AI
+234,Ngô Bảo Khoa,Stella Ngo,IT
+235,Phan Văn Hạnh,Rose Phan,Hành chính
+236,Huỳnh Minh Tuấn,Nina Huynh,Hành chính
+237,Dương Thị Thắng,Camille Duong,Marketing
+238,Lý Thu Linh,Luca Ly,Marketing
+239,Trần Thu Khoa,Micah Tran,Hành chính
+240,Trần Ngọc Sơn,Justice Tran,Nhân sự
+241,Lê Xuân Yến,Joy Le,Nhân sự
+242,Trần Ngọc Bình,Chase Tran,Kế toán
+243,Dương Hoàng Khoa,Winston Duong,Sản xuất
+244,Phan Thị Tâm,Melody Phan,AI
+245,Phạm Ngọc Minh,Diana Pham,Kỹ thuật
+246,Lý Văn Mai,Gemma Ly,Nhân sự
+247,Võ Bảo Quân,Flynn Vo,Marketing
+248,Bùi Thu Linh,Hazel Bui,Kỹ thuật
+249,Võ Gia Giang,Gideon Vo,Kỹ thuật
+250,Dương Xuân Thảo,Francesca Duong,Kế toán
+251,Bùi Ngọc Tâm,Knox Bui,Kỹ thuật
+252,Lý Ngọc Khoa,Lucia Ly,Nhân sự
+253,Bùi Xuân Long,Evelyn Bui,Marketing
+254,Đặng Hoàng Phong,Eliza Dang,Hành chính
+255,Võ Thu Phúc,Whitney Vo,Kỹ thuật
+256,Hoàng Thị Thảo,Cameron Hoang,Kinh doanh
+257,Đỗ Minh An,Rachel Do,Sản xuất
+258,Hồ Xuân Châu,Sasha Ho,Kinh doanh
+259,Nguyễn Hoàng Nhung,Gabriella Nguyen,Nhân sự
+260,Bùi Thu Thắng,Celeste Bui,Marketing
+261,Võ Gia Uyên,Emerson Vo,Hành chính
+262,Trần Quốc Yến,Flora Tran,Kế toán
+263,Hồ Xuân Tuấn,Isabel Ho,Nhân sự
+264,Huỳnh Hữu Hoa,Ace Huynh,Marketing
+265,Bùi Bảo Thảo,Ruby Bui,Marketing
+266,Vũ Kim Tú,Amelia Vu,Kế toán
+267,Huỳnh Quốc Trang,Sawyer Huynh,IT
+268,Trần Ngọc Quân,James Tran,Kinh doanh
+269,Võ Hoàng Trang,Miles Vo,Kỹ thuật
+270,Phạm Đức Mai,Jensen Pham,Nhân sự
+271,Ngô Thị Dũng,Julia Ngo,Marketing
+272,Đặng Hoàng Hà,Axel Dang,Marketing
+273,Hoàng Thị Trang,Simon Hoang,Hành chính
+274,Phan Gia Sơn,Aiden Phan,AI
+275,Ngô Thu Thảo,Bennett Ngo,Marketing
+276,Huỳnh Quốc An,Eleanor Huynh,Kinh doanh
+277,Lê Minh Hoa,Xander Le,IT
+278,Đặng Hữu Khoa,Theo Dang,Hành chính
+279,Bùi Đức Minh,Scott Bui,Kỹ thuật
+280,Huỳnh Xuân Khánh,Pearl Huynh,Kế toán
+281,Phạm Ngọc Minh,Milo Pham,Sản xuất
+282,Huỳnh Đức Hạnh,Dylan Huynh,Kỹ thuật
+283,Võ Thị Linh,Hudson Vo,AI
+284,Lê Văn Dũng,Fabian Le,Kinh doanh
+285,Dương Đức Quân,Jocelyn Duong,Sản xuất
+286,Huỳnh Bảo Mai,Noah Huynh,Nhân sự
+287,Vũ Thu Anh,Eva Vu,Marketing
+288,Trần Thanh Duy,Delilah Tran,Hành chính
+289,Hồ Bảo Hương,Bodhi Ho,IT
+290,Huỳnh Bảo Anh,Ezra Huynh,Kế toán
+291,Phan Bảo Tú,Zoe Phan,Sản xuất
+292,Trần Gia Lan,Juliet Tran,Kế toán
+293,Huỳnh Thu Khánh,Kennedy Huynh,Kinh doanh
+294,Nguyễn Hữu Lan,Vivian Nguyen,Hành chính
+295,Huỳnh Hoàng Mai,Ren Huynh,AI
+296,Bùi Thanh Anh,Landon Bui,IT
+297,Lê Văn An,Caleb Le,Sản xuất
+298,Nguyễn Văn Giang,Harley Nguyen,Marketing
+299,Hồ Gia Hương,Josephine Ho,Kỹ thuật
+300,Ngô Hoàng Anh,Ivan Ngo,Marketing
+301,Huỳnh Minh Giang,Rowan Huynh,Kinh doanh
+302,Dương Hoàng Giang,Magnus Duong,Kế toán
+303,Võ Ngọc An,Victor Vo,AI
+304,Vũ Gia Minh,Warren Vu,Sản xuất
+305,Hồ Thanh Thảo,Ivy Ho,Hành chính
+306,Phan Hữu Thảo,Roland Phan,Kinh doanh
+307,Huỳnh Bảo Hùng,Jonah Huynh,Kỹ thuật
+308,Hoàng Ngọc Hương,Meredith Hoang,Nhân sự
+309,Phan Thu Lan,Tate Phan,IT
+310,Nguyễn Kim Khoa,Gabriel Nguyen,Sản xuất
+311,Trần Hoàng Hà,Elliot Tran,Kỹ thuật
+312,Nguyễn Thu Tú,Samuel Nguyen,Kỹ thuật
+313,Đặng Xuân An,Connor Dang,Kỹ thuật
+314,Bùi Quốc Vy,London Bui,Kinh doanh
+315,Phạm Minh Khoa,Lyra Pham,AI
+316,Vũ Xuân An,Clara Vu,Nhân sự
+317,Lê Xuân Tâm,Evan Le,IT
+318,Lý Xuân Ngân,Troy Ly,Nhân sự
+319,Dương Thanh Giang,Lawrence Duong,Sản xuất
+320,Đỗ Minh Anh,Eden Do,Kinh doanh
+321,Đỗ Gia Quỳnh,Julian Do,Nhân sự
+322,Lý Xuân Yến,Nadia Ly,Kỹ thuật
+323,Huỳnh Hữu Dũng,Louis Huynh,Kinh doanh
+324,Hồ Minh Yến,Nova Ho,Marketing
+325,Vũ Gia Sơn,Ekko Vu,Marketing
+326,Nguyễn Thanh Hải,June Nguyen,AI
+327,Hoàng Hữu Khánh,Spencer Hoang,IT
+328,Vũ Gia Tâm,Storm Vu,Kinh doanh
+329,Trần Văn Trang,Layla Tran,AI
+330,Võ Thanh Hà,Leslie Vo,Kế toán
+331,Trần Thị Tâm,Beatrice Tran,IT
+332,Bùi Ngọc Anh,Grayson Bui,Marketing
+333,Huỳnh Văn Quân,Finn Huynh,Kế toán
+334,Hoàng Thị Giang,Otto Hoang,Hành chính
+335,Nguyễn Gia Vy,Imogen Nguyen,Kế toán
+336,Huỳnh Hữu Uyên,Skyler Huynh,Sản xuất
+337,Lý Bảo Phong,Owen Ly,Marketing
+338,Bùi Ngọc Thảo,Aster Bui,Kinh doanh
+339,Võ Xuân Bình,Graham Vo,Kỹ thuật
+340,Lê Thanh Hương,Monroe Le,Kinh doanh
+341,Lê Kim An,Cedric Le,Marketing
+342,Hoàng Gia Mai,Wren Hoang,Kinh doanh
+343,Đỗ Quốc Tâm,Athena Do,Hành chính
+344,Hoàng Gia Thắng,Nash Hoang,Nhân sự
+345,Hoàng Quốc Nam,Lincoln Hoang,Kỹ thuật
+346,Vũ Thu Vy,Hallie Vu,Nhân sự
+347,Đỗ Kim Linh,Sloan Do,Kỹ thuật
+348,Lê Hoàng Tâm,Edward Le,Nhân sự
+349,Lê Thị Sơn,Brooks Le,Marketing
+350,Lê Văn Phong,Aria Le,Kinh doanh
+351,Bùi Thị Phong,Simone Bui,Kinh doanh
+352,Lý Hữu Mai,Oakley Ly,Kế toán
+353,Võ Ngọc An,Francis Vo,AI
+354,Đỗ Hữu Hải,Rosalie Do,Nhân sự
+355,Ngô Bảo Bình,Gavin Ngo,Kinh doanh
+356,Phan Minh Hà,Arden Phan,Hành chính
+357,Huỳnh Gia Hiếu,Lennon Huynh,Kế toán
+358,Võ Minh Khoa,Beckett Vo,Sản xuất
+359,Huỳnh Thị Yến,Ellis Huynh,Kinh doanh
+360,Đặng Quốc Mai,Nathan Dang,Nhân sự
+361,Ngô Gia Nhung,Tristan Ngo,Sản xuất
+362,Vũ Gia Hiếu,Wade Vu,Sản xuất
+363,Phạm Thanh Minh,Skyler Pham,Kế toán
+364,Đỗ Thu Uyên,Ian Do,Kỹ thuật
+365,Võ Quốc Vy,Wyatt Vo,Marketing
+366,Đỗ Thanh An,River Do,IT
+367,Đỗ Đức An,Flynn Do,Kế toán
+368,Hoàng Hữu Bình,Maya Hoang,AI
+369,Trần Ngọc Hương,Emma Tran,Kế toán
+370,Bùi Thanh Thảo,Oakley Bui,Kỹ thuật
+371,Trần Xuân Châu,Mabel Tran,Kinh doanh
+372,Bùi Hoàng Hiếu,Nash Bui,Marketing
+373,Dương Đức Sơn,Travis Duong,Hành chính
+374,Vũ Ngọc Long,Dean Vu,IT
+375,Vũ Thanh Dũng,Zane Vu,Hành chính
+376,Vũ Kim Long,Ren Vu,Kinh doanh
+377,Đỗ Hữu Hùng,Lorenzo Do,Kỹ thuật
+378,Hồ Quốc Thảo,Noah Ho,Sản xuất
+379,Trần Quốc Khoa,Mila Tran,Nhân sự
+380,Hồ Xuân Duy,Whitney Ho,Hành chính
+381,Lê Hoàng Tâm,Aiden Le,Hành chính
+382,Hồ Hữu Hạnh,Robin Ho,Nhân sự
+383,Đặng Hoàng Hà,Harriet Dang,Nhân sự
+384,Ngô Minh Thắng,Sophie Ngo,Kỹ thuật
+385,Lê Gia Sơn,Adrian Le,Nhân sự
+386,Phạm Gia Yến,Faye Pham,Nhân sự
+387,Hoàng Hoàng Quân,Ivy Hoang,Kế toán
+388,Trần Thu An,Julian Tran,Kế toán
+389,Lê Kim Dũng,Rachel Le,Kế toán
+390,Võ Kim Hải,Nicholas Vo,Sản xuất
+391,Bùi Minh Vy,Asher Bui,Hành chính
+392,Phan Hữu Hạnh,Lily Phan,Sản xuất
+393,Trần Đức Thảo,Theo Tran,Kế toán
+394,Trần Bảo Khánh,Vaughn Tran,Kỹ thuật
+395,Võ Kim Nam,Leah Vo,AI
+396,Huỳnh Quốc Phong,Zora Huynh,Sản xuất
+397,Ngô Ngọc Nam,Theo Ngo,Kỹ thuật
+398,Vũ Hoàng Nhung,Blake Vu,Sản xuất
+399,Đặng Đức Quân,Eric Dang,IT
+400,Trần Đức Quân,Yara Tran,Sản xuất
+401,Phan Quốc Tâm,Sterling Phan,Hành chính
+402,Nguyễn Thị Uyên,Madeleine Nguyen,Hành chính
+403,Đặng Thanh Giang,Mia Dang,Hành chính
+404,Nguyễn Văn Bình,Kiara Nguyen,Marketing
+405,Nguyễn Hoàng Hiếu,Beckett Nguyen,Marketing
+406,Lê Thu Ngân,Griffin Le,Nhân sự
+407,Lý Xuân Sơn,Josiah Ly,Kế toán
+408,Võ Xuân Thảo,Brooks Vo,Kinh doanh
+409,Phạm Quốc Linh,Storm Pham,Kế toán
+410,Võ Ngọc Tú,Daphne Vo,AI
+411,Trần Gia Phúc,Lennox Tran,IT
+412,Phạm Minh Nhung,Arlo Pham,AI
+413,Ngô Minh Giang,Isabel Ngo,Kế toán
+414,Lê Hữu Anh,Luca Le,Sản xuất
+415,Bùi Xuân Long,Pierce Bui,Kỹ thuật
+416,Hồ Xuân Quân,Quentin Ho,Nhân sự
+417,Ngô Đức Khoa,Callum Ngo,Sản xuất
+418,Phạm Hoàng Vy,Emmett Pham,Kinh doanh
+419,Phan Gia Thảo,Leo Phan,Hành chính
+420,Hoàng Đức Anh,Harley Hoang,Hành chính
+421,Nguyễn Quốc Duy,Kaia Nguyen,Kinh doanh
+422,Nguyễn Thu Anh,Piper Nguyen,Hành chính
+423,Lê Gia Hiếu,Nora Le,Hành chính
+424,Lý Minh Nam,Grayson Ly,Kỹ thuật
+425,Phạm Ngọc Tuấn,Elias Pham,Kinh doanh
+426,Lê Thanh Thắng,Jocelyn Le,IT
+427,Dương Xuân Tâm,Sidney Duong,Hành chính
+428,Bùi Đức Tú,Victoria Bui,Sản xuất
+429,Ngô Hữu Hùng,Jensen Ngo,Nhân sự
+430,Nguyễn Hữu Tú,Tobias Nguyen,Sản xuất
+431,Phan Hữu Khoa,Ace Phan,Kỹ thuật
+432,Võ Thị Ngân,Josephine Vo,Kỹ thuật
+433,Trần Thanh Bình,Fiona Tran,Kỹ thuật
+434,Bùi Thanh Phúc,Vera Bui,Nhân sự
+435,Phạm Thị An,Lucas Pham,Kinh doanh
+436,Hoàng Đức Ngân,Francesca Hoang,Kế toán
+437,Hồ Kim Tâm,Summer Ho,Marketing
+438,Hồ Thanh Anh,Sadie Ho,Nhân sự
+439,Dương Quốc Anh,Christian Duong,Nhân sự
+440,Dương Hữu Khoa,Dante Duong,Kỹ thuật
+441,Phạm Hoàng Tâm,Melody Pham,AI
+442,Lê Ngọc Hoa,Dylan Le,Nhân sự
+443,Lê Văn Khoa,Lincoln Le,Hành chính
+444,Trần Hoàng Quỳnh,Selena Tran,Kế toán
+445,Dương Thị Ngân,Felix Duong,Marketing
+446,Hoàng Bảo Bình,Oliver Hoang,Kinh doanh
+447,Ngô Hữu Ngân,Marley Ngo,Nhân sự
+448,Vũ Thu Thắng,Jude Vu,Hành chính
+449,Đỗ Thị Hải,Elena Do,Hành chính
+450,Bùi Kim Hương,Ethan Bui,Nhân sự
+451,Hồ Xuân Phong,Rosalie Ho,Kế toán
+452,Đỗ Thị Bình,London Do,IT
+453,Võ Bảo Ngân,Ava Vo,Kinh doanh
+454,Trần Quốc Hạnh,Finley Tran,AI
+455,Đỗ Xuân Lan,Scarlett Do,Sản xuất
+456,Phạm Thu Long,Francis Pham,Marketing
+457,Lê Kim Tâm,Athena Le,Hành chính
+458,Phạm Thị Nam,Zelda Pham,Marketing
+459,Vũ Thị Hải,Celeste Vu,Sản xuất
+460,Vũ Kim Uyên,Lucille Vu,Kế toán
+461,Phan Xuân Phúc,Nolan Phan,Kế toán
+462,Phan Minh Trang,Jasmine Phan,Hành chính
+463,Lý Đức Hương,Haven Ly,Hành chính
+464,Dương Thanh Mai,Sky Duong,IT
+465,Trần Đức Hiếu,Spencer Tran,Nhân sự
+466,Trần Gia Tâm,Indigo Tran,Kinh doanh
+467,Bùi Bảo Tú,Phoenix Bui,Kinh doanh
+468,Lê Đức Hạnh,Wade Le,Sản xuất
+469,Phạm Thanh Khoa,Isaac Pham,Sản xuất
+470,Võ Xuân Duy,Cooper Vo,Kinh doanh
+471,Ngô Bảo Bình,Nova Ngo,Sản xuất
+472,Bùi Hữu An,June Bui,Kỹ thuật
+473,Võ Thu Nam,Jasper Vo,Kế toán
+474,Ngô Gia Ngân,Zoe Ngo,Kinh doanh
+475,Võ Văn An,Gemma Vo,Nhân sự
+476,Lê Thanh Vy,Victor Le,Hành chính
+477,Lý Hoàng Vy,Remington Ly,Nhân sự
+478,Nguyễn Hoàng Phong,Enzo Nguyen,Marketing
+479,Dương Hoàng Trang,Frankie Duong,Nhân sự
+480,Phạm Đức Quân,Georgia Pham,Nhân sự
+481,Đặng Văn Long,Eleanor Dang,Kỹ thuật
+482,Võ Bảo Bình,Seth Vo,Hành chính
+483,Đỗ Quốc Minh,Greta Do,Kỹ thuật
+484,Lý Văn Linh,Warren Ly,Sản xuất
+485,Hồ Hoàng Hải,Rocco Ho,AI
+486,Bùi Văn Tuấn,Ella Bui,Hành chính
+487,Nguyễn Ngọc Khánh,Malcolm Nguyen,Kế toán
+488,Ngô Thị An,Thea Ngo,Nhân sự
+489,Huỳnh Bảo Phúc,Drake Huynh,Kỹ thuật
+490,Vũ Văn Tâm,Roman Vu,Kế toán
+491,Phan Hoàng Hiếu,Dakota Phan,IT
+492,Ngô Minh Dũng,Maxwell Ngo,Kế toán
+493,Bùi Kim Duy,Atlas Bui,Kỹ thuật
+494,Trần Xuân Tâm,Lucian Tran,Marketing
+495,Trần Xuân Trang,Easton Tran,Kỹ thuật
+496,Lê Thị Hạnh,Skye Le,Hành chính
+497,Dương Xuân Khánh,Chloe Duong,Marketing
+498,Lý Hữu Bình,Jayden Ly,Marketing
+499,Ngô Thị Quân,Matilda Ngo,Marketing
+500,Bùi Quốc Quân,Milan Bui,AI

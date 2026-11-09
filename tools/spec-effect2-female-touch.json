@@ -1,0 +1,23 @@
+{
+ "src": "D:/workspace/lottery/FirstVide.mp4",
+ "fps": 30,
+ "columns": [
+  {
+   "id": "T",
+   "kind": "orn",
+   "ref": 45.9,
+   "box": [
+    800,
+    -35,
+    470,
+    1150
+   ],
+   "angle": 11,
+   "range": [
+    45.27,
+    47.47
+   ],
+   "global": true
+  }
+ ]
+}
