@@ -20,7 +20,11 @@ trong `/etc/lottery/lottery.env` rồi `systemctl restart lottery`.
 2. **Database `lottery`**, owner `lottery_app`, gồm 2 bảng (định nghĩa ở [db/schema.sql](../db/schema.sql)):
    - `admins` – mỗi tài khoản đã đăng nhập vào lottery: `user_id` (id Supabase Auth), `email`, `first_login_at`, `last_login_at`, `login_count`.
    - `audit_log` – nhật ký thao tác: `login`, `login:failed`, `logout`, `draw` (kèm tên người trúng), `action:*` (vắng mặt, xoá, reset), `state:update`, `export`.
-3. **File cấu hình** `/etc/lottery/lottery.env` (quyền 600): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` (chứa mật khẩu `lottery_app`).
+3. **Container `lottery-db-proxy`** (image `alpine/socat`, `--restart unless-stopped`, nhãn `purpose=lottery`):
+   chuyển tiếp `127.0.0.1:25432` → `supabase-db:15432` trong mạng Docker `supabase_default`.
+   Cần vì cổng `127.0.0.1:15432` trên VM là pooler Supavisor (chỉ phục vụ database của Jetsona) và Docker chặn kết nối
+   thẳng từ VM vào container. Không sửa docker-compose hay `.env` của Jetsona.
+4. **File cấu hình** `/etc/lottery/lottery.env` (quyền 600): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` (chứa mật khẩu `lottery_app`).
    Được nạp bởi `/etc/systemd/system/lottery.service` (`EnvironmentFile=`).
 
 ## Xem dữ liệu
@@ -47,6 +51,8 @@ systemctl stop lottery
 # 2. Xoá database và role
 docker exec -i supabase-db psql -U supabase_admin -d postgres -c "DROP DATABASE IF EXISTS lottery WITH (FORCE);"
 docker exec -i supabase-db psql -U supabase_admin -d postgres -c "DROP ROLE IF EXISTS lottery_app;"
+docker rm -f lottery-db-proxy
+docker image rm alpine/socat   # tuỳ chọn
 
 # 3. Bỏ DATABASE_URL khỏi cấu hình (app vẫn chạy, chỉ không ghi log nữa)
 sed -i '/^DATABASE_URL=/d' /etc/lottery/lottery.env
@@ -66,6 +72,7 @@ docker exec -i supabase-db psql -U supabase_admin -d postgres -c "CREATE ROLE lo
 docker exec -i supabase-db psql -U supabase_admin -d postgres -c "CREATE DATABASE lottery OWNER lottery_app;"
 docker exec -i supabase-db psql -U supabase_admin -d lottery -c "REVOKE ALL ON DATABASE lottery FROM PUBLIC; ALTER SCHEMA public OWNER TO lottery_app; REVOKE ALL ON SCHEMA public FROM PUBLIC;"
 docker exec -i -e PGPASSWORD="$PW" supabase-db psql -h 127.0.0.1 -U lottery_app -d lottery < /opt/lottery/db/schema.sql
-echo "DATABASE_URL=postgres://lottery_app:$PW@127.0.0.1:15432/lottery" >> /etc/lottery/lottery.env
+docker run -d --name lottery-db-proxy --restart unless-stopped --network supabase_default -p 127.0.0.1:25432:5432   --label purpose=lottery alpine/socat:latest TCP-LISTEN:5432,fork,reuseaddr TCP:supabase-db:15432
+echo "DATABASE_URL=postgres://lottery_app:$PW@127.0.0.1:25432/lottery" >> /etc/lottery/lottery.env
 systemctl restart lottery
 ```
