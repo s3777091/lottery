@@ -2,7 +2,7 @@
 
 import CardPreview from './card-preview';
 import { departmentChances, rebalanceDepartment } from '@/lib/eligibility';
-import { DesktopIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
+import { DesktopIcon, EyeClosedIcon, EyeOpenIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { EffectId, EffectMode, EffectPlanEntry, ListMode, Settings, Person, State } from '@/lib/types';
 import { LIST_LABEL, LIST_MODES, EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
@@ -50,14 +50,35 @@ Màn chiếu sẽ quay theo danh sách này từ lượt tiếp theo.`)) return;
     } catch (e) { say((e as Error).message); }
     setBusy(false);
   }
+  // Saved on its own (not with "Lưu cài đặt") so it acts like a switch.
+  const badgeOn = state.settings.showModeBadge !== false;
+  async function toggleBadge() {
+    setBusy(true);
+    try {
+      onChange(await api<State>('/api/state', 'PUT', { settings: { showModeBadge: !badgeOn } }));
+      say(badgeOn ? 'Đã ẩn nhãn "CHẾ ĐỘ THỬ" trên màn chiếu.' : 'Đã hiện nhãn "CHẾ ĐỘ THỬ" trên màn chiếu.');
+    } catch (e) { say((e as Error).message); }
+    setBusy(false);
+  }
   return (
-    <div className="list-switch" role="group" aria-label="Chọn danh sách">
-      {LIST_MODES.map((mode) => (
-        <button key={mode} className={`list-switch-btn ${mode}${state.mode === mode ? ' active' : ''}`} aria-pressed={state.mode === mode} disabled={busy} onClick={() => pick(mode)}>
-          <b>{LIST_LABEL[mode]}</b>
-          <small>{state.lists[mode].people.toLocaleString('vi-VN')} người · {state.lists[mode].winners} đã trúng</small>
-        </button>
-      ))}
+    <div className="list-tools">
+      <div className={`seg seg-${state.mode}`} role="radiogroup" aria-label="Chọn danh sách">
+        <span className="seg-thumb" aria-hidden="true" />
+        {LIST_MODES.map((mode) => (
+          <button key={mode} role="radio" aria-checked={state.mode === mode} className={state.mode === mode ? 'on' : ''} disabled={busy}
+            title={`${LIST_LABEL[mode]}: ${state.lists[mode].people.toLocaleString('vi-VN')} người · ${state.lists[mode].winners} đã trúng`}
+            onClick={() => pick(mode)}>
+            <span className={`seg-dot ${mode}`} aria-hidden="true" />
+            {mode === 'test' ? 'Thử' : 'Thật'}
+            <span className="seg-count">{state.lists[mode].people.toLocaleString('vi-VN')}</span>
+          </button>
+        ))}
+      </div>
+      <button className={`badge-toggle${badgeOn ? ' on' : ''}`} disabled={busy} onClick={toggleBadge} aria-pressed={badgeOn}
+        title={badgeOn ? 'Đang hiện nhãn "CHẾ ĐỘ THỬ" trên màn chiếu — bấm để ẩn' : 'Đang ẩn nhãn "CHẾ ĐỘ THỬ" — bấm để hiện'}>
+        {badgeOn ? <EyeOpenIcon aria-hidden="true" /> : <EyeClosedIcon aria-hidden="true" />}
+        <span>Nhãn thử</span>
+      </button>
     </div>
   );
 }
@@ -342,8 +363,8 @@ function ShowTab({ state, onChange, say }: { state: State; onChange: (s: State) 
         <div className="row">
           <button className="btn gold" onClick={async () => {
             // nextEffect belongs to the projector/live picker; never overwrite it with this tab's stale copy.
-            const { nextEffect: _live, ...rest } = settings;
-            void _live;
+            const { nextEffect: _live, showModeBadge: _badge, ...rest } = settings;
+            void _live; void _badge;
             try {
               onChange(await api<State>('/api/state', 'PUT', { settings: rest }));
               say('Đã lưu cài đặt.');

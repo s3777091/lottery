@@ -37,6 +37,9 @@ export async function PUT(req: Request) {
     }
     body.settings.departmentWeights = Object.fromEntries(Object.entries(weights).map(([key, value]) => [departmentKey(key), value]));
   }
+  if (body.settings?.showModeBadge !== undefined && typeof body.settings.showModeBadge !== 'boolean') {
+    return NextResponse.json({ error: 'Giá trị nhãn chế độ thử không hợp lệ.' }, { status: 400 });
+  }
   if (body.settings?.effect !== undefined && !Object.hasOwn(EFFECT_LABEL, body.settings.effect)) {
     return NextResponse.json({ error: 'Hiệu ứng không hợp lệ.' }, { status: 400 });
   }

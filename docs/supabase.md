@@ -6,7 +6,7 @@
 |---|---|---|
 | Đăng nhập | Supabase Auth (GoTrue) của Jetsona, gọi qua Kong `http://127.0.0.1:18000` | **Có** – cùng danh sách tài khoản. Tạo / xóa / đổi mật khẩu trong Studio: https://supabase.protexa.cloud → Authentication → Users |
 | Dữ liệu riêng của lottery | Database **`lottery`** trong container `supabase-db` (Postgres của Supabase) | **Không** – database riêng, role riêng |
-| Danh sách người tham gia, kết quả quay | File `/opt/lottery/data/state.json` | Không |
+| Danh sách người chơi (thử / thật), kết quả, màn chiếu, cài đặt | Database `lottery`: bảng `app_state`, `datasets` | Không |
 
 App **không** tạo bảng, không sửa dữ liệu nào trong database `postgres` của Jetsona. Việc duy nhất xảy ra ở phía Jetsona
 khi đăng nhập là GoTrue tự ghi phiên đăng nhập (`auth.sessions`, `auth.refresh_tokens`) như mọi app dùng Supabase Auth.
@@ -17,7 +17,12 @@ trong `/etc/lottery/lottery.env` rồi `systemctl restart lottery`.
 ## Những gì đã tạo trên VM
 
 1. **Role Postgres `lottery_app`** (cluster-wide): `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE`. Không có quyền trên bảng nào của Jetsona.
-2. **Database `lottery`**, owner `lottery_app`, gồm 2 bảng (định nghĩa ở [db/schema.sql](../db/schema.sql)):
+2. **Database `lottery`**, owner `lottery_app` (định nghĩa ở [db/schema.sql](../db/schema.sql)):
+   - `app_state` – 1 dòng: danh sách đang dùng (`mode` = `test` / `real`), cài đặt (`settings`: hiệu ứng, kịch bản từng lượt,
+     tỷ lệ phòng ban, nội dung thẻ, bật/tắt nhãn "CHẾ ĐỘ THỬ"), lệnh màn chiếu (`command`), `version`.
+   - `datasets` – 2 dòng, `test` (danh sách thử) và `real` (danh sách thật do người dùng upload). Mỗi dòng có
+     `people`, `source_file`, `winners`, `excluded` (vắng mặt), `draw_count`. Kết quả của hai danh sách tách riêng.
+   - View chỉ để đọc: `people_view`, `winners_view` (tách JSON thành từng dòng để truy vấn SQL).
    - `admins` – mỗi tài khoản đã đăng nhập vào lottery: `user_id` (id Supabase Auth), `email`, `first_login_at`, `last_login_at`, `login_count`.
    - `audit_log` – nhật ký thao tác: `login`, `login:failed`, `logout`, `draw` (kèm tên người trúng), `action:*` (vắng mặt, xoá, reset), `state:update`, `export`.
 3. **Container `lottery-db-proxy`** (image `alpine/socat`, `--restart unless-stopped`, nhãn `purpose=lottery`):
@@ -36,9 +41,16 @@ docker exec -it supabase-db psql -U supabase_admin -d lottery
 ```sql
 select email, login_count, last_login_at from admins order by last_login_at desc;
 select at, email, action, detail from audit_log order by at desc limit 50;
+select mode, count(*) from people_view group by mode;            -- số người mỗi danh sách
+select * from winners_view where mode = 'real' order by won_at;  -- kết quả danh sách thật
+select mode, settings from app_state;                            -- danh sách đang dùng + cài đặt
 ```
 
 (Studio chỉ hiển thị database `postgres`, nên database `lottery` xem bằng psql như trên.)
+
+Lần đầu app chạy với database rỗng, nó tự nhập `/opt/lottery/data/state.json` (nếu có) làm **danh sách thử**.
+Sau đó file này không được dùng nữa (giữ lại làm bản sao lưu). Sửa tay trong database thì chạy `systemctl restart lottery`
+để app đọc lại.
 
 ## Xoá hoàn toàn dữ liệu lottery khỏi Supabase
 
@@ -54,7 +66,7 @@ docker exec -i supabase-db psql -U supabase_admin -d postgres -c "DROP ROLE IF E
 docker rm -f lottery-db-proxy
 docker image rm alpine/socat   # tuỳ chọn
 
-# 3. Bỏ DATABASE_URL khỏi cấu hình (app vẫn chạy, chỉ không ghi log nữa)
+# 3. Bỏ DATABASE_URL khỏi cấu hình (app quay về lưu trong data/state.json và không ghi log)
 sed -i '/^DATABASE_URL=/d' /etc/lottery/lottery.env
 systemctl start lottery
 ```

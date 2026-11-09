@@ -327,12 +327,18 @@ input:focus, select:focus { border-color: var(--gold); }
 .admin-user { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 
 /* Test / real list switch (admin header) and the projector's test badge */
-.list-switch { display: inline-flex; gap: 6px; padding: 4px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); }
-.list-switch-btn { display: grid; gap: 2px; text-align: left; padding: 8px 14px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; }
-.list-switch-btn b { font-size: 14px; }
-.list-switch-btn small { font-size: 11px; }
-.list-switch-btn:hover:not(:disabled):not(.active) { border-color: var(--line); }
-.list-switch-btn.active.test { color: #2a1d04; background: #f2c14e; }
-.list-switch-btn.active.real { color: #04230f; background: #5fd38a; }
-.list-switch-btn.active small { opacity: .8; }
+.list-tools { display: inline-flex; align-items: center; gap: 8px; }
+.seg { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0,0,0,.3); }
+.seg-thumb { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 1px 6px rgba(0,0,0,.35); transition: transform .25s cubic-bezier(.3,.7,.2,1); }
+.seg-real .seg-thumb { transform: translateX(100%); }
+.seg button { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 5px 12px; border: 0; border-radius: 999px; background: none; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: color .2s; }
+.seg button.on { color: var(--text); }
+.seg button:disabled { cursor: wait; }
+.seg-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .5; }
+.seg button.on .seg-dot.test { background: #f2c14e; opacity: 1; box-shadow: 0 0 6px #f2c14e; }
+.seg button.on .seg-dot.real { background: #5fd38a; opacity: 1; box-shadow: 0 0 6px #5fd38a; }
+.seg-count { font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 999px; background: rgba(255,255,255,.08); color: var(--muted); font-variant-numeric: tabular-nums; }
+.badge-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--muted); font-size: 12px; cursor: pointer; transition: color .2s, border-color .2s; }
+.badge-toggle.on { color: #f2c14e; border-color: rgba(242,193,78,.4); }
+.badge-toggle:hover:not(:disabled) { border-color: var(--gold); }
 .mode-badge { position: absolute; top: 14px; left: 14px; z-index: 30; padding: 5px 10px; border-radius: 8px; font: 700 12px/1 var(--ui); letter-spacing: .08em; color: #2a1d04; background: rgba(242, 193, 78, .9); pointer-events: none; }

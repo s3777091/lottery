@@ -39,6 +39,8 @@ export interface Settings {
   effectPlan?: EffectPlanEntry[];
   /** Per-draw winner count. Empty entries draw one winner. */
   winnerCountPlan?: (number | null)[];
+  /** Show the small "CHẾ ĐỘ THỬ" badge on the projector while the test list is active (default on). */
+  showModeBadge?: boolean;
   /** One-off pick for the very next draw (set from the projector or admin); cleared once that draw happens. */
   nextEffect?: EffectId | 'random' | null;
 }
