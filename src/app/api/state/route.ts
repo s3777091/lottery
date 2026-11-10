@@ -6,6 +6,8 @@ import { departmentKey } from '@/lib/eligibility';
 import { requestUser } from '@/lib/auth';
 import { audit } from '@/lib/db';
 
+const MAX_PEOPLE = 20000;
+
 // Pollers revalidate with If-None-Match; an unchanged state costs a body-less 304.
 export async function GET(req: Request) {
   const view = new URL(req.url).searchParams.get('view') === 'show' ? 'show' : 'full';
@@ -68,6 +70,9 @@ export async function PUT(req: Request) {
   return withLock(async () => {
   const s: State = { ...(await load()) };
   if (Array.isArray(body.people)) {
+    if (body.people.length > MAX_PEOPLE) {
+      return NextResponse.json({ error: `Danh sách tối đa ${MAX_PEOPLE.toLocaleString('vi-VN')} người.` }, { status: 400 });
+    }
     s.people = body.people
       .filter((p) => p && typeof p.name === 'string' && p.name.trim())
       .map((p, i) => ({ id: String(p.id || `p${i + 1}`), name: p.name.trim().slice(0, 80), englishName: String(p.englishName || '').trim().slice(0, 80), department: String(p.department || '').trim().slice(0, 160) }));

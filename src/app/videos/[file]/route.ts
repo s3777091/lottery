@@ -25,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   const headers: Record<string, string> = {
     'Content-Type': type,
     'Accept-Ranges': 'bytes',
-    'Cache-Control': process.env.NODE_ENV === 'production' ? 'public, max-age=31536000, immutable' : 'no-cache',
+    'Cache-Control': process.env.NODE_ENV === 'production' ? 'private, max-age=31536000, immutable' : 'no-cache',
   };
 
   // Video elements seek with Range requests; answer them with 206 partial content.

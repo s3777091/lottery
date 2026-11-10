@@ -5,6 +5,25 @@ import {
 } from '@/lib/auth';
 
 const PUBLIC_PATHS = new Set(['/login', '/api/auth/login']);
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+const MAX_BODY_BYTES = 5 * 1024 * 1024; // a 20 000-person list is about 2 MB of JSON
+
+/**
+ * Blocks cross-site request forgery: a write must come from a page of this site. Browsers always send
+ * Origin (or at least Sec-Fetch-Site) with fetch/form POSTs, so a request from another site is refused.
+ */
+function crossSite(req: NextRequest) {
+  const origin = req.headers.get('origin');
+  if (origin) {
+    try {
+      return new URL(origin).host !== req.headers.get('host');
+    } catch {
+      return true;
+    }
+  }
+  const site = req.headers.get('sec-fetch-site');
+  return site !== null && site !== 'same-origin' && site !== 'none';
+}
 
 // Everything except build assets, fonts and logos needs a signed-in Supabase user.
 export async function proxy(req: NextRequest) {
@@ -12,6 +31,13 @@ export async function proxy(req: NextRequest) {
   headers.delete(USER_ID_HEADER); // never trust these from the client
   headers.delete(USER_EMAIL_HEADER);
   const path = req.nextUrl.pathname;
+
+  if (!SAFE_METHODS.has(req.method)) {
+    if (crossSite(req)) return NextResponse.json({ error: 'Yêu cầu không hợp lệ.' }, { status: 403 });
+    if (Number(req.headers.get('content-length') || 0) > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Dữ liệu gửi lên quá lớn.' }, { status: 413 });
+    }
+  }
   if (PUBLIC_PATHS.has(path)) return NextResponse.next({ request: { headers } });
 
   if (!authConfigured()) return new NextResponse('Đăng nhập chưa được cấu hình (SUPABASE_URL / SUPABASE_ANON_KEY).', { status: 503 });
