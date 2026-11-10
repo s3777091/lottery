@@ -6,7 +6,7 @@
 |---|---|---|
 | Đăng nhập | Supabase Auth (GoTrue) của Jetsona, gọi qua Kong `http://127.0.0.1:18000` | **Có** – cùng danh sách tài khoản. Tạo / xóa / đổi mật khẩu trong Studio: https://supabase.protexa.cloud → Authentication → Users |
 | Dữ liệu riêng của lottery | Database **`lottery`** trong container `supabase-db` (Postgres của Supabase) | **Không** – database riêng, role riêng |
-| Danh sách người chơi (thử / thật), kết quả, màn chiếu, cài đặt | Database `lottery`: bảng `app_state`, `datasets` | Không |
+| Danh sách người chơi (thử / thật), người trúng, vắng mặt, màn chiếu, cài đặt | Database `lottery`: bảng `people`, `winners`, `absentees`, `datasets`, `app_state` | Không |
 
 App **không** tạo bảng, không sửa dữ liệu nào trong database `postgres` của Jetsona. Việc duy nhất xảy ra ở phía Jetsona
 khi đăng nhập là GoTrue tự ghi phiên đăng nhập (`auth.sessions`, `auth.refresh_tokens`) như mọi app dùng Supabase Auth.
@@ -18,13 +18,18 @@ trong `/etc/lottery/lottery.env` rồi `systemctl restart lottery`.
 
 1. **Role Postgres `lottery_app`** (cluster-wide): `LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE`. Không có quyền trên bảng nào của Jetsona.
 2. **Database `lottery`**, owner `lottery_app` (định nghĩa ở [db/schema.sql](../db/schema.sql)):
-   - `app_state` – 1 dòng: danh sách đang dùng (`mode` = `test` / `real`), cài đặt (`settings`: hiệu ứng, kịch bản từng lượt,
-     tỷ lệ phòng ban, nội dung thẻ, bật/tắt nhãn "CHẾ ĐỘ THỬ"), lệnh màn chiếu (`command`), `version`.
-   - `datasets` – 2 dòng, `test` (danh sách thử) và `real` (danh sách thật do người dùng upload). Mỗi dòng có
-     `people`, `source_file`, `winners`, `excluded` (vắng mặt), `draw_count`. Kết quả của hai danh sách tách riêng.
-   - View chỉ để đọc: `people_view`, `winners_view` (tách JSON thành từng dòng để truy vấn SQL).
-   - `admins` – mỗi tài khoản đã đăng nhập vào lottery: `user_id` (id Supabase Auth), `email`, `first_login_at`, `last_login_at`, `login_count`.
-   - `audit_log` – nhật ký thao tác: `login`, `login:failed`, `logout`, `draw` (kèm tên người trúng), `action:*` (vắng mặt, xoá, reset), `state:update`, `export`.
+   | Bảng | Nội dung |
+   |---|---|
+   | `people` | Người chơi: `mode` (`test`/`real`), `ord` (thứ tự trong file), `id`, `name` (Họ và Tên), `english_name`, `department` (Phòng Ban) |
+   | `winners` | Người trúng: `draw_id`, `mode`, `person_id`, `name`, `english_name`, `department`, `prize` (nội dung thẻ), `effect`, `won_at` (thời gian), `seq` (thứ tự) |
+   | `absentees` | Người được đánh dấu vắng mặt: `mode`, `person_id` |
+   | `datasets` | 2 dòng `test` (danh sách thử) và `real` (danh sách thật): `source_file` (file đã upload), `draw_count` (số lượt đã quay) |
+   | `app_state` | 1 dòng: danh sách đang dùng (`mode`), cài đặt (`settings` – JSON: hiệu ứng, kịch bản từng lượt, tỷ lệ phòng ban, nội dung thẻ, bật/tắt nhãn "CHẾ ĐỘ THỬ"), lệnh màn chiếu (`command`) |
+   | `admins` | Ai đã đăng nhập: `user_id` (id Supabase Auth), `email`, `first_login_at`, `last_login_at`, `login_count` |
+   | `audit_log` | Nhật ký: `login`, `login:failed`, `logout`, `draw` (kèm tên người trúng), `action:*` (vắng mặt, xoá, reset), `state:update`, `mode:test`/`mode:real`, `export` |
+
+   Danh sách thử và thật tách riêng hoàn toàn bằng cột `mode`. Upload danh sách mới thay toàn bộ `people` của danh sách đó;
+   mỗi lượt quay chỉ thêm dòng vào `winners`.
 3. **Container `lottery-db-proxy`** (image `alpine/socat`, `--restart unless-stopped`, nhãn `purpose=lottery`):
    chuyển tiếp `127.0.0.1:25432` → `supabase-db:15432` trong mạng Docker `supabase_default`.
    Cần vì cổng `127.0.0.1:15432` trên VM là pooler Supavisor (chỉ phục vụ database của Jetsona) và Docker chặn kết nối
@@ -41,9 +46,10 @@ docker exec -it supabase-db psql -U supabase_admin -d lottery
 ```sql
 select email, login_count, last_login_at from admins order by last_login_at desc;
 select at, email, action, detail from audit_log order by at desc limit 50;
-select mode, count(*) from people_view group by mode;            -- số người mỗi danh sách
-select * from winners_view where mode = 'real' order by won_at;  -- kết quả danh sách thật
-select mode, settings from app_state;                            -- danh sách đang dùng + cài đặt
+select mode, count(*) from people group by mode;                                   -- số người mỗi danh sách
+select name, english_name, department, prize, won_at from winners where mode = 'real' order by seq;  -- kết quả thật
+select p.name, p.department from absentees a join people p using (mode) where p.id = a.person_id;    -- vắng mặt
+select mode, settings from app_state;                                              -- danh sách đang dùng + cài đặt
 ```
 
 (Studio chỉ hiển thị database `postgres`, nên database `lottery` xem bằng psql như trên.)
