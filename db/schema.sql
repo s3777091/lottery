@@ -1,6 +1,8 @@
 -- Schema for the separate `lottery` database (runs INSIDE database "lottery", as role lottery_app).
 -- It never touches the Jetsona "postgres" database. Safe to re-run.
 
+/* ---------------- sign-in history ---------------- */
+
 create table if not exists admins (
   user_id        uuid primary key,              -- id from Supabase Auth (auth.users.id); no FK, different database
   email          text not null,
@@ -14,39 +16,71 @@ create table if not exists audit_log (
   at       timestamptz not null default now(),
   user_id  uuid,
   email    text,
-  action   text not null,                        -- login, logout, draw, action:<type>, state:update, export
+  action   text not null,                        -- login, logout, draw, action:<type>, state:update, mode:<list>, export
   detail   jsonb
 );
 create index if not exists audit_log_at_idx on audit_log (at desc);
 
--- The show itself. One row of shared settings + projector command, and one row per player list.
+/* ---------------- the show ---------------- */
+
+-- One row: which list the show uses, shared settings and the last projector command.
 create table if not exists app_state (
   id         boolean primary key default true check (id),   -- single row
   version    bigint not null,                                -- bumped on every save; the app's cache key
-  mode       text not null default 'test' check (mode in ('test', 'real')),  -- list the show currently uses
-  settings   jsonb not null,                                 -- effects, per-draw plan, odds, card text
+  mode       text not null default 'test' check (mode in ('test', 'real')),
+  settings   jsonb not null,                                 -- effects, per-draw plan, odds, card text, test badge
   command    jsonb,                                          -- last projector command (spin / continue)
   updated_at timestamptz not null default now()
 );
 
+-- One row per list: 'test' = rehearsal list, 'real' = list uploaded for the event.
 create table if not exists datasets (
-  mode        text primary key check (mode in ('test', 'real')),  -- 'test' = rehearsal list, 'real' = uploaded list
-  people      jsonb not null default '[]',   -- [{id, name, englishName, department}]
+  mode        text primary key check (mode in ('test', 'real')),
   source_file text not null default '',      -- name of the uploaded XLSX/CSV
-  winners     jsonb not null default '[]',   -- [{drawId, personId, name, englishName, department, effect, time, prizeDescription}]
-  excluded    jsonb not null default '[]',   -- personIds marked absent
-  draw_count  integer not null default 0,
+  draw_count  integer not null default 0,    -- rounds drawn so far (drives the per-draw plan)
   updated_at  timestamptz not null default now()
 );
 
--- Read-only helpers for SQL / reporting.
-create or replace view winners_view as
-  select d.mode, w."drawId" as draw_id, w.name, w."englishName" as english_name, w.department,
-         w."prizeDescription" as prize, w.effect, to_timestamp(w.time / 1000.0) as won_at
-  from datasets d,
-       jsonb_to_recordset(d.winners) as w("drawId" text, name text, "englishName" text, department text,
-                                         "prizeDescription" text, effect text, time bigint);
+-- Players of each list, in upload order.
+create table if not exists people (
+  mode         text not null references datasets (mode) on delete cascade,
+  ord          integer not null,             -- position in the uploaded file (0-based)
+  id           text not null,                -- app id: "<STT or name>#<n>"
+  name         text not null,                -- Họ và Tên
+  english_name text not null default '',     -- English Name (shown on the video)
+  department   text not null default '',     -- Phòng Ban
+  primary key (mode, ord)
+);
+create index if not exists people_mode_id_idx on people (mode, id);
 
-create or replace view people_view as
-  select d.mode, p.id, p.name, p."englishName" as english_name, p.department
-  from datasets d, jsonb_to_recordset(d.people) as p(id text, name text, "englishName" text, department text);
+-- Every winner of each list, in draw order.
+create table if not exists winners (
+  draw_id     text primary key,
+  seq         bigserial,                     -- insertion order
+  mode        text not null references datasets (mode) on delete cascade,
+  person_id   text not null,
+  name        text not null,
+  english_name text not null default '',
+  department  text not null default '',
+  prize       text,                          -- card text for single-winner draws
+  effect      text not null,                 -- effect1-female … effect3-male
+  time_ms     bigint not null,               -- draw time in epoch ms (as used by the app)
+  won_at      timestamptz generated always as (to_timestamp(time_ms / 1000.0)) stored
+);
+create index if not exists winners_mode_seq_idx on winners (mode, seq);
+
+-- People marked absent ("vắng mặt"): their prize went back and they cannot win again.
+create table if not exists absentees (
+  mode      text not null references datasets (mode) on delete cascade,
+  person_id text not null,
+  primary key (mode, person_id)
+);
+
+/* ---------------- upgrade from the first version (JSON columns) ---------------- */
+-- That version only ever ran against an empty database, so the old columns are dropped without copying.
+
+drop view if exists winners_view;
+drop view if exists people_view;
+alter table datasets drop column if exists people;
+alter table datasets drop column if exists winners;
+alter table datasets drop column if exists excluded;

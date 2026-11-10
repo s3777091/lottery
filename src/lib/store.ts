@@ -103,14 +103,24 @@ async function readDoc(): Promise<Doc> {
   if (!head.rows.length) return seedDatabase();
   const key = head.rows[0].version;
   if (cache && cacheKey === key) return cache;
-  const [app, sets] = await Promise.all([
+  const [app, sets, people, winners, absent] = await Promise.all([
     query<{ version: string; mode: ListMode; settings: Settings; command: Command | null }>('select version, mode, settings, command from app_state'),
-    query<{ mode: ListMode; people: Person[]; source_file: string; winners: Winner[]; excluded: string[]; draw_count: number }>(
-      'select mode, people, source_file, winners, excluded, draw_count from datasets'),
+    query<{ mode: ListMode; source_file: string; draw_count: number }>('select mode, source_file, draw_count from datasets'),
+    query<{ mode: ListMode; id: string; name: string; english_name: string; department: string }>(
+      'select mode, id, name, english_name, department from people order by mode, ord'),
+    query<{ mode: ListMode; draw_id: string; person_id: string; name: string; english_name: string; department: string; prize: string | null; effect: EffectId; time_ms: string }>(
+      'select mode, draw_id, person_id, name, english_name, department, prize, effect, time_ms from winners order by mode, seq'),
+    query<{ mode: ListMode; person_id: string }>('select mode, person_id from absentees'),
   ]);
-  const lists = Object.fromEntries(sets.rows.map((r) => [r.mode, {
-    people: r.people, sourceFile: r.source_file, winners: r.winners, excluded: r.excluded, drawCount: r.draw_count,
-  }]));
+  const lists: Record<string, Dataset> = {};
+  for (const r of sets.rows) lists[r.mode] = { people: [], sourceFile: r.source_file, winners: [], excluded: [], drawCount: r.draw_count };
+  for (const r of people.rows) lists[r.mode]?.people.push({ id: r.id, name: r.name, englishName: r.english_name, department: r.department });
+  for (const r of winners.rows) {
+    const w: Winner = { drawId: r.draw_id, personId: r.person_id, name: r.name, englishName: r.english_name, department: r.department, effect: r.effect, time: Number(r.time_ms) };
+    if (r.prize) w.prizeDescription = r.prize;
+    lists[r.mode]?.winners.push(w);
+  }
+  for (const r of absent.rows) lists[r.mode]?.excluded.push(r.person_id);
   const a = app.rows[0];
   cacheKey = a.version;
   return (cache = normalizeDoc({ version: Number(a.version), mode: a.mode, settings: a.settings, command: a.command, lists }));
@@ -119,8 +129,58 @@ async function readDoc(): Promise<Doc> {
 /** First start against an empty database: import data/state.json if there is one (it becomes the test list). */
 async function seedDatabase(): Promise<Doc> {
   const doc = normalizeDoc(readFileDoc());
+  cache = null;
   await writeDoc(doc, LIST_MODES);
   return doc;
+}
+
+const same = (a: unknown, b: unknown) => a === b || JSON.stringify(a) === JSON.stringify(b);
+
+type Q = (sql: string, params?: unknown[]) => Promise<unknown>;
+
+/** Writes one list as rows, touching only what changed since the cached copy (a draw adds a few winners). */
+async function writeDataset(q: Q, mode: ListMode, d: Dataset, prev: Dataset | undefined) {
+  await q(
+    `insert into datasets (mode, source_file, draw_count, updated_at) values ($1, $2, $3, now())
+     on conflict (mode) do update set source_file = excluded.source_file, draw_count = excluded.draw_count, updated_at = now()`,
+    [mode, d.sourceFile, d.drawCount],
+  );
+  if (!prev || !same(prev.people, d.people)) {
+    await q('delete from people where mode = $1', [mode]);
+    await q(
+      `insert into people (mode, ord, id, name, english_name, department)
+       select $1, (t.ord - 1)::int, x.id, x.name, coalesce(x."englishName", ''), coalesce(x.department, '')
+       from jsonb_array_elements($2::jsonb) with ordinality as t(elem, ord),
+            jsonb_to_record(t.elem) as x(id text, name text, "englishName" text, department text)`,
+      [mode, JSON.stringify(d.people)],
+    );
+  }
+  if (!prev || !same(prev.winners, d.winners)) {
+    const keep = new Set(d.winners.map((w) => w.drawId));
+    const had = new Set((prev?.winners || []).map((w) => w.drawId));
+    const removed = prev ? prev.winners.filter((w) => !keep.has(w.drawId)).map((w) => w.drawId) : null;
+    if (removed === null) await q('delete from winners where mode = $1', [mode]);
+    else if (removed.length) await q('delete from winners where mode = $1 and draw_id = any($2)', [mode, removed]);
+    const added = d.winners.filter((w) => !had.has(w.drawId));
+    if (added.length) {
+      await q(
+        `insert into winners (draw_id, mode, person_id, name, english_name, department, prize, effect, time_ms)
+         select x."drawId", $1, x."personId", x.name, coalesce(x."englishName", ''), coalesce(x.department, ''),
+                nullif(x."prizeDescription", ''), x.effect, x.time
+         from jsonb_array_elements($2::jsonb) with ordinality as t(elem, ord),
+              jsonb_to_record(t.elem) as x("drawId" text, "personId" text, name text, "englishName" text, department text,
+                                           "prizeDescription" text, effect text, time bigint)
+         order by t.ord`,
+        [mode, JSON.stringify(added)],
+      );
+    }
+  }
+  if (!prev || !same(prev.excluded, d.excluded)) {
+    await q('delete from absentees where mode = $1', [mode]);
+    if (d.excluded.length) {
+      await q('insert into absentees (mode, person_id) select $1, unnest($2::text[]) on conflict do nothing', [mode, d.excluded]);
+    }
+  }
 }
 
 async function writeDoc(doc: Doc, changed: ListMode[]) {
@@ -133,6 +193,7 @@ async function writeDoc(doc: Doc, changed: ListMode[]) {
     cache = doc;
     return;
   }
+  const prev = cache;
   await transaction(async (q) => {
     await q(
       `insert into app_state (id, version, mode, settings, command, updated_at) values (true, $1, $2, $3, $4, now())
@@ -140,15 +201,7 @@ async function writeDoc(doc: Doc, changed: ListMode[]) {
          command = excluded.command, updated_at = now()`,
       [doc.version, doc.mode, JSON.stringify(doc.settings), doc.command ? JSON.stringify(doc.command) : null],
     );
-    for (const mode of changed) {
-      const d = doc.lists[mode];
-      await q(
-        `insert into datasets (mode, people, source_file, winners, excluded, draw_count, updated_at) values ($1, $2, $3, $4, $5, $6, now())
-         on conflict (mode) do update set people = excluded.people, source_file = excluded.source_file, winners = excluded.winners,
-           excluded = excluded.excluded, draw_count = excluded.draw_count, updated_at = now()`,
-        [mode, JSON.stringify(d.people), d.sourceFile, JSON.stringify(d.winners), JSON.stringify(d.excluded), d.drawCount],
-      );
-    }
+    for (const mode of changed) await writeDataset(q, mode, doc.lists[mode], prev?.lists[mode]);
   });
   cacheKey = String(doc.version);
   cache = doc;
