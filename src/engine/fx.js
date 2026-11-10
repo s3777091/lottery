@@ -41,26 +41,51 @@ export function sprites() {
   return SPR;
 }
 
+// One particle. Every field is set in reset(), so all particles share one shape (fast property access in
+// the hot loops) and a dead particle can be reused instead of thrown away (no garbage-collection pauses).
+class Particle {
+  constructor() { this.hx = null; this.reset(); }
+  reset() {
+    this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.g = 0; this.drag = 0; this.age = 0; this.life = 1; this.delay = 0;
+    this.s = 2; this.c = 'gold'; this.a = 1; this.m = 0; this.tw = 0; this.ph = Math.random() * TAU; this.grp = 0; this.turb = 0;
+    this.fi = 0.08; this.fd = 0; this.end = 0;
+    this.tx = 0; this.ty = 0; this.seekAt = 0; this.ks = 0; this.k = 0;
+    this.trail = 0; this.heat = 0; this.glit = 0; this.ember = false; this.hn = 0; this.hi = 0; // hx (tail buffer) is kept for reuse
+    this.ang = 0; this.rad = 0; this.av = 0; this.rv = 0; this.vo = null; this.cx = 0; this.cy = 0; this.pull = 0; this.swirl = 0;
+    return this;
+  }
+}
+
 export class FX {
   constructor() {
     this.ps = [];
+    this.pool = [];
     this.rockets = [];
     this.rings = [];
     this.flash = 0;
     this.flashRGB = '255,236,200';
     this.t = 0;
     this.max = 18000;
+    // make the particles up front, while the page loads, so the first shell does not stall a frame
+    for (let i = 0; i < 6000; i++) this.pool.push(new Particle());
     sprites();
   }
-  add(o) {
+  // a fresh particle (reused from the pool when possible); hot emitters set its fields directly
+  spawn() {
     if (this.ps.length >= this.max) return null;
-    const p = { x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0, age: 0, life: 1, delay: 0, s: 2, c: 'gold', a: 1, m: 0, tw: 0, ph: Math.random() * TAU, grp: 0, turb: 0, fi: 0.08, fd: 0, end: 0, hn: 0, hi: 0 };
-    Object.assign(p, o);
+    const p = (this.pool.pop() || new Particle()).reset();
     this.ps.push(p);
     return p;
   }
+  add(o) {
+    const p = this.spawn();
+    if (p) Object.assign(p, o);
+    return p;
+  }
   clear(keepGroups) {
-    this.ps = keepGroups ? this.ps.filter((p) => keepGroups.includes(p.grp)) : [];
+    const keep = [];
+    for (const p of this.ps) (keepGroups && keepGroups.includes(p.grp) ? keep : this.pool).push(p);
+    this.ps = keep;
     this.rockets = [];
     this.rings = [];
     this.flash = 0;
@@ -84,6 +109,8 @@ export class FX {
         p.vx += (dx / d) * sp; p.vy += (dy / d) * sp;
         p.drag = 1.5;
       }
+      // falling embers are too slow to streak: drop their tails, which would only cost draws
+      p.trail = 0; p.hn = 0;
       p.life = Infinity;
       p.end = la + rand(0, dur * 0.4);
       p.fd = dur * rand(0.6, 1);
@@ -107,13 +134,14 @@ export class FX {
       if (p.fd ? la > p.end + p.fd : la > p.life) {
         ps[i] = ps[ps.length - 1];
         ps.pop();
+        this.pool.push(p);
         continue;
       }
       // remember the last few positions of streaking sparks (drawn as a fading tail) in a fixed ring
       // buffer: thousands of sparks run this every frame, so it must not allocate
       if (p.trail) {
         if (p.m === M.FREE || (p.m === M.SEEK && !(p.k >= 1))) {
-          const h = p.hx || (p.hx = new Float32Array(p.trail * 2));
+          const h = p.hx && p.hx.length >= p.trail * 2 ? p.hx : (p.hx = new Float32Array(p.trail * 2));
           h[p.hi * 2] = p.x; h[p.hi * 2 + 1] = p.y;
           p.hi = (p.hi + 1) % p.trail;
           if (p.hn < p.trail) p.hn++;
@@ -322,15 +350,17 @@ export class FX {
     const c = o.c || 'gold';
     this.add({ x, y, s: (o.glow || 26) * u, c, life: 0.45, fi: 0.02, a: 0.55 });
     this.add({ x, y, s: (o.glow || 26) * 0.45 * u, c: 'white', life: 0.22, fi: 0.01, a: 0.8 });
+    const g = o.g ?? 90 * u, drag = o.drag ?? 1.5, s0 = o.s?.[0] ?? 0.9, s1 = o.s?.[1] ?? 1.5, mix = o.mix ?? 0.15;
+    const trail = o.trail ?? 4, glit = o.glit ?? 0.08, grp = o.grp || 0;
     for (let i = 0; i < n; i++) {
+      const p = this.spawn();
+      if (!p) return;
       const z = rand(-1, 1), a = rand(TAU), r = Math.sqrt(1 - z * z);
       const v = spd * r * rand(0.9, 1.06);
-      this.add({
-        x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: o.g ?? 90 * u, drag: o.drag ?? 1.5,
-        life: rand(life[0], life[1]), s: rand(o.s?.[0] ?? 0.9, o.s?.[1] ?? 1.5) * u,
-        c: o.c2 && Math.random() < (o.mix ?? 0.15) ? o.c2 : c,
-        trail: o.trail ?? 4, heat: rand(0.06, 0.14), ember: true, glit: o.glit ?? 0.08, fi: 0.01, grp: o.grp || 0,
-      });
+      p.x = x; p.y = y; p.vx = Math.cos(a) * v; p.vy = Math.sin(a) * v; p.g = g; p.drag = drag;
+      p.life = rand(life[0], life[1]); p.s = rand(s0, s1) * u;
+      p.c = o.c2 && Math.random() < mix ? o.c2 : c;
+      p.trail = trail; p.heat = rand(0.06, 0.14); p.ember = true; p.glit = glit; p.fi = 0.01; p.grp = grp;
     }
   }
   willow(x, y, c = 'gold', n = 140) {
@@ -368,17 +398,19 @@ export class FX {
   // particles burst outward from (x, y) then gather into the given text points
   textBurst(x, y, pts, cx, cy, o = {}) {
     const u = L.view.u, sc = o.scale || 1;
+    const [s0, s1] = o.seekAt || [0.22, 0.5], [k0, k1] = o.ks || [1.1, 1.8];
+    const spd = o.spd || 520, size = u * (o.size || 1), mix = o.mix ?? 0.22, c1 = o.c || 'gold', c2 = o.c2 || 'white';
+    const grp = o.grp || 0, delay = o.delay || 0, trail = o.trail || 0, heat = o.heat || 0, glit = o.glit || 0;
     for (let i = 0; i < pts.length; i += 2) {
-      const a = rand(TAU), v = rand(80, o.spd || 520) * u;
-      const [s0, s1] = o.seekAt || [0.22, 0.5], [k0, k1] = o.ks || [1.1, 1.8];
-      this.add({
-        m: M.SEEK, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
-        tx: cx + pts[i] * sc, ty: cy + pts[i + 1] * sc,
-        seekAt: rand(s0, s1), ks: rand(k0, k1), life: Infinity,
-        s: rand(1.1, 1.9) * u * (o.size || 1), c: Math.random() < (o.mix ?? 0.22) ? o.c2 || 'white' : o.c || 'gold',
-        tw: o.tw ?? rand(2, 7), grp: o.grp || 0, delay: o.delay || 0,
-        trail: o.trail || 0, heat: o.heat || 0, glit: o.glit || 0,
-      });
+      const p = this.spawn();
+      if (!p) return;
+      const a = rand(TAU), v = rand(80, spd) * u;
+      p.m = M.SEEK; p.x = x; p.y = y; p.vx = Math.cos(a) * v; p.vy = Math.sin(a) * v;
+      p.tx = cx + pts[i] * sc; p.ty = cy + pts[i + 1] * sc;
+      p.seekAt = rand(s0, s1); p.ks = rand(k0, k1); p.life = Infinity;
+      p.s = rand(1.1, 1.9) * size; p.c = Math.random() < mix ? c2 : c1;
+      p.tw = o.tw ?? rand(2, 7); p.grp = grp; p.delay = delay;
+      p.trail = trail; p.heat = heat; p.glit = glit;
     }
   }
   // particles fly in from scattered positions and settle into text points

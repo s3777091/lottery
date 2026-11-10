@@ -422,10 +422,12 @@ export class Overlay {
         while (n > 0 && (n >= 1 || Math.random() < n)) {
           n -= 1;
           const j = ((Math.random() * np) | 0) * 2;
-          this.fx.add({
-            x: pos.x + s.pts[j], y: pos.y + (s.sag || 0) + s.pts[j + 1], vx: rand(-25, 25) * u, vy: rand(-10, 40) * u, g: 120 * u, drag: 1.2,
-            life: rand(0.35, 0.9), s: rand(0.6, 1.2) * u, c: Math.random() < 0.6 ? 'white' : s.isWinner ? 'gold' : s.c, glit: 0.35, trail: 3, ember: true,
-          });
+          const p = this.fx.spawn();
+          if (!p) break;
+          p.x = pos.x + s.pts[j]; p.y = pos.y + (s.sag || 0) + s.pts[j + 1];
+          p.vx = rand(-25, 25) * u; p.vy = rand(-10, 40) * u; p.g = 120 * u; p.drag = 1.2;
+          p.life = rand(0.35, 0.9); p.s = rand(0.6, 1.2) * u; p.c = Math.random() < 0.6 ? 'white' : s.isWinner ? 'gold' : s.c;
+          p.glit = 0.35; p.trail = 3; p.ember = true;
         }
       }
       if (s.fired && !s.done && t >= s.t + s.hold) {
