@@ -2,7 +2,7 @@
 
 import CardPreview from './card-preview';
 import { departmentChances, rebalanceDepartment } from '@/lib/eligibility';
-import { DesktopIcon, ExitIcon, EyeClosedIcon, EyeOpenIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
+import { DesktopIcon, ExitIcon, EyeClosedIcon, EyeOpenIcon, PlusIcon, ResetIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { EffectId, EffectMode, EffectPlanEntry, ListMode, Settings, Person, State } from '@/lib/types';
 import { LIST_LABEL, LIST_MODES, EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
@@ -356,7 +356,7 @@ function ShowTab({ state, onChange, say }: { state: State; onChange: (s: State) 
             {(Object.keys(EFFECT_LABEL) as EffectMode[]).map((k) => <option key={k} value={k}>{EFFECT_LABEL[k]}</option>)}
           </select>
         </label>
-        <DrawPlanEditor state={state} settings={settings} setSettings={setSettings} onChange={onChange} say={say} />
+        <DrawPlanEditor state={state} settings={settings} setSettings={setSettings} />
         <label className="check">
           <input type="checkbox" checked={Boolean(settings.hideWinnerName)} onChange={(e) => setSettings({ ...settings, hideWinnerName: e.target.checked })} />
           <span>Ẩn tên được chọn — bật thì cảnh cuối video không hiện tên (cả 2 hiệu ứng), tên chỉ lộ ở thẻ kết quả</span>
@@ -386,8 +386,8 @@ function ShowTab({ state, onChange, say }: { state: State; onChange: (s: State) 
 /* ---------------- Per-draw settings ---------------- */
 const effectName = (e: EffectId | 'random') => EFFECT_LABEL[e];
 
-function DrawPlanEditor({ state, settings, setSettings, onChange, say }: {
-  state: State; settings: Settings; setSettings: (s: Settings) => void; onChange: (s: State) => void; say: (m: string) => void;
+function DrawPlanEditor({ state, settings, setSettings }: {
+  state: State; settings: Settings; setSettings: (s: Settings) => void;
 }) {
   const done = state.drawCount;
   const plan = settings.effectPlan ?? [];
@@ -412,8 +412,14 @@ function DrawPlanEditor({ state, settings, setSettings, onChange, say }: {
     while (copy.length && copy[copy.length - 1] === null) copy.pop();
     setSettings({ ...settings, winnerCountPlan: copy });
   };
-  const setLive = async (value: EffectId | 'random' | null) => {
-    try { onChange(await api<State>('/api/state', 'PUT', { settings: { nextEffect: value } })); say(value ? 'Đã chọn hiệu ứng cho lượt tới.' : 'Lượt tới dùng theo kịch bản.'); } catch (e) { say((e as Error).message); }
+  // Remove one upcoming round: later rounds shift up one place.
+  const removeRound = (index: number) => {
+    const p = plan.slice(); const c = counts.slice();
+    p.splice(index, 1); c.splice(index, 1);
+    while (c.length && c[c.length - 1] == null) c.pop();
+    while (p.length && !p[p.length - 1]) p.pop();
+    setVisibleThrough(Math.max(0, lastRound - 1));
+    setSettings({ ...settings, effectPlan: p, winnerCountPlan: c });
   };
 
   return (
@@ -425,15 +431,9 @@ function DrawPlanEditor({ state, settings, setSettings, onChange, say }: {
           <span className="muted"> · {plannedWinnerCount(settings, done)} người trúng · sẽ phát <b className="gold-text">{effectName(next.effect)}</b>
             {next.source === 'next' ? ' (chọn nhanh)' : next.source === 'plan' ? ' (theo kịch bản)' : ' (mặc định)'}</span>
         </div>
-        <label className="field inline"><span>Chọn nhanh cho lượt tới (áp dụng ngay, đồng bộ với màn chiếu)</span>
-          <select value={live ?? ''} onChange={(e) => setLive((e.target.value || null) as EffectId | 'random' | null)}>
-            <option value="">Theo kịch bản / mặc định</option>
-            {SINGLE_DRAW_CHOICES.map((k) => <option key={k} value={k}>{EFFECT_LABEL[k]}</option>)}
-          </select>
-        </label>
       </div>
       <table className="grid">
-        <thead><tr><th>Lượt</th><th>Số người trúng</th><th>Hiệu ứng</th><th>Sẽ phát</th></tr></thead>
+        <thead><tr><th>Lượt</th><th>Số người trúng</th><th>Hiệu ứng</th><th>Sẽ phát</th><th aria-label="Xoá lượt"></th></tr></thead>
         <tbody>
           {Array.from({ length: lastRound - done }, (_, k) => {
             const i = done + k;
@@ -451,6 +451,12 @@ function DrawPlanEditor({ state, settings, setSettings, onChange, say }: {
                 {SINGLE_DRAW_CHOICES.map((c) => <option key={c} value={c}>{EFFECT_LABEL[c]}</option>)}
               </select></td>
               <td className={p.source === 'default' ? 'muted' : undefined}>{effectName(p.effect)}{p.source === 'next' && <small className="warn"> · chọn nhanh</small>}</td>
+              <td className="effect-plan-delete">
+                <button className="btn ghost small icon-only" onClick={() => removeRound(i)} disabled={lastRound - done <= 1}
+                  aria-label={'Xoá lượt ' + (i + 1)} title={'Xoá lượt ' + (i + 1)}>
+                  <TrashIcon width={16} height={16} aria-hidden="true" />
+                </button>
+              </td>
             </tr>;
           })}
         </tbody>
