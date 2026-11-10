@@ -7,7 +7,7 @@
  */
 import { winnerCard, drawWinnerCardEffect, drawWinnerCardForeground } from './winner-card';
 import { L } from './util';
-import { FX, M } from './fx';
+import { FX, M, COLORS } from './fx';
 
 const { rand, TAU } = L;
 
@@ -323,18 +323,35 @@ export class Overlay {
       const cx = (x) => L.clamp(x * W, half + 20, W - half - 20), cy = (y) => L.clamp(y * H, size, H - size);
       // a name can drift with its firework while the camera pans ("to": where it is at time to.t)
       const to = o.to && { t: o.to.t, x: cx(o.to.x), y: cy(o.to.y) };
-      return { text, pts, x: cx(o.x), y: cy(o.y), to };
+      return { text, pts, size, x: cx(o.x), y: cy(o.y), to };
+    };
+    // the haze the burning letters light around themselves: one blurred copy of the name per shot,
+    // drawn once at half resolution, instead of a glow around each of its thousands of stars
+    const glow = (shot, c) => {
+      if (!shot.text) return null;
+      const k = 0.5, fs = shot.size * k, pad = fs * 0.8;
+      const m = L.canvas(1, 1).getContext('2d');
+      m.font = `800 ${fs}px ${FONT.sans}`;
+      const w = Math.ceil(m.measureText(shot.text).width + pad * 2), h = Math.ceil(fs * 2.1 + pad);
+      const cv = L.canvas(w, h), x = cv.getContext('2d');
+      x.font = m.font;
+      x.textAlign = 'center';
+      x.textBaseline = 'middle';
+      x.filter = `blur(${(fs * 0.12).toFixed(1)}px)`;
+      x.fillStyle = `rgb(${COLORS[c] || COLORS.gold})`;
+      x.fillText(shot.text, w / 2, h / 2);
+      return { img: cv, w: w / k, h: h / k };
     };
     fw.shots.forEach((s, i) => {
       if (!names.length) return;
       const shot = make(names[i % names.length], { x: s.x, y: s.y, to: s.to, size: s.size || 84, maxW: 640, pts: 900 });
       // "at": where the clip's own shell breaks, when the name hangs beside it rather than on top of it
-      this.shots.push({ ...s, ...shot, at: s.at && { x: s.at.x * W, y: s.at.y * H }, grp: 100 + i, hold: s.hold || 1.5 });
+      this.shots.push({ ...s, ...shot, glow: glow(shot, s.c), at: s.at && { x: s.at.x * W, y: s.at.y * H }, grp: 100 + i, hold: s.hold || 1.5 });
     });
     const w = fw.winner;
     const win = hideWinnerName ? { text: '', pts: [], x: w.x * W, y: w.y * H }
-      : make(winner, { x: w.x, y: w.y, size: 140, maxW: 1200, pts: 2600 });
-    this.shots.push({ ...w, ...win, c: w.c || 'cyan', grp: 99, hold: (w.release ?? w.t + 1.5) - w.t, isWinner: true, hand: w.hand && { x: w.hand.x * W, y: w.hand.y * H } });
+      : make(winner, { x: w.x, y: w.y, size: 140, maxW: 1200, pts: 2200 });
+    this.shots.push({ ...w, ...win, glow: glow(win, 'gold'), c: w.c || 'cyan', grp: 99, hold: (w.release ?? w.t + 1.5) - w.t, isWinner: true, hand: w.hand && { x: w.hand.x * W, y: w.hand.y * H } });
   }
 
   // where a shot's name is at time t (it may drift with the camera)
@@ -383,18 +400,18 @@ export class Overlay {
       if (!s.fired && t >= s.t) {
         s.fired = true;
         // after a skip, old shots are dropped instead of all bursting at once
-        if (t - s.t > 0.6) { s.done = true; continue; }
+        if (t - s.t > 0.6) { s.done = s.dropped = true; continue; }
         const win = s.isWinner;
         // the shell itself: streaking stars thrown out over a sphere, then the stars that spell the name
         // the stars leave from the clip's own shell, so the name is born out of a real explosion
         const o = s.at || s;
-        this.fx.shell(o.x, o.y, { c: s.c, c2: 'white', n: win ? 260 : 110, spd: (win ? 520 : 290) * u, glow: win ? 70 : 34, life: win ? [1.3, 2] : [1, 1.6] });
+        this.fx.shell(o.x, o.y, { c: s.c, c2: 'white', n: win ? 200 : 85, spd: (win ? 520 : 290) * u, glow: win ? 70 : 34, life: win ? [1.3, 2] : [1, 1.6] });
         if (win) { this.fx.flash = 0.1; this.fx.flashRGB = '170,240,255'; }
         if (s.pts.length) {
           this.fx.textBurst(o.x, o.y, s.pts, s.x, s.y, { c: win ? 'gold' : s.c, c2: 'white', grp: s.grp, size: win ? 1.35 : 1.15, mix: s.mix ?? (win ? 0.1 : 0.15),
             // snap into the letters quickly, like a shaped shell, so the name reads while it hangs;
             // the stars streak on their way out and burn unevenly once they are in place
-            spd: win ? 620 : 420, seekAt: [0.1, 0.24], ks: [2.4, 3.4], trail: 3, heat: 0.12, tw: 0, glit: 0.1, halo: true });
+            spd: win ? 620 : 420, seekAt: [0.1, 0.24], ks: [2.4, 3.4], trail: 3, heat: 0.12, tw: 0, glit: 0.1 });
         }
         s.sag = 0;
       }
@@ -423,6 +440,22 @@ export class Overlay {
         }
       }
     }
+  }
+
+  // the soft glow under each hanging name: rises as the stars settle, dies quickly once they fall
+  drawShotGlows(ctx, t) {
+    let on = false;
+    for (const s of this.shots || []) {
+      if (!s.glow || !s.fired || s.dropped) continue;
+      const age = t - s.t;
+      const a = (s.isWinner ? 0.55 : 0.45) * L.clamp((age - 0.2) / 0.4, 0, 1) * L.clamp(1 - (age - s.hold) / 0.5, 0, 1);
+      if (a <= 0.01) continue;
+      if (!on) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; on = true; }
+      const p = this.shotPos(s, t), g = s.glow;
+      ctx.globalAlpha = a;
+      ctx.drawImage(g.img, p.x - g.w / 2, p.y + (s.sag || 0) - g.h / 2, g.w, g.h);
+    }
+    if (on) ctx.restore();
   }
 
   cardW(w, brush) { return brush ? w * 1.1 + 16 : w * 1.7 + 18; }
@@ -467,6 +500,7 @@ export class Overlay {
     this.fireworks(t, dt);
     this.finale(t, dt);
     this.fx.update(dt);
+    this.drawShotGlows(ctx, t);
     this.fx.draw(ctx);
     if (this.final && this.winTex) this.drawFinal(ctx, t);
     this.fx.drawFlash(ctx);

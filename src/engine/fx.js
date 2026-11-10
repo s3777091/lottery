@@ -32,26 +32,10 @@ function glowSprite(rgb, core = 0.12, size = 64) {
   x.fillRect(0, 0, size, size);
   return c;
 }
-// The same star with the faint haze it lights around itself (bloom), drawn HAZE times larger than
-// a plain sprite: one draw instead of a star plus a separate glow.
-const HAZE = 3;
-function hazeSprite(rgb, size = 128) {
-  const c = L.canvas(size, size), x = c.getContext('2d');
-  const g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(0.12 / HAZE, `rgba(${rgb},1)`);
-  g.addColorStop(0.32 / HAZE, `rgba(${rgb},0.4)`);
-  g.addColorStop(0.62 / HAZE, `rgba(${rgb},0.12)`);
-  g.addColorStop(0.45, `rgba(${rgb},0.05)`);
-  g.addColorStop(1, `rgba(${rgb},0)`);
-  x.fillStyle = g;
-  x.fillRect(0, 0, size, size);
-  return c;
-}
 export function sprites() {
   if (!SPR) {
-    SPR = { haze: {} };
-    for (const k in COLORS) { SPR[k] = glowSprite(COLORS[k]); SPR.haze[k] = hazeSprite(COLORS[k]); }
+    SPR = {};
+    for (const k in COLORS) SPR[k] = glowSprite(COLORS[k]);
     SPR.soft = glowSprite('255,190,90', 0.02, 128);
   }
   return SPR;
@@ -70,7 +54,7 @@ export class FX {
   }
   add(o) {
     if (this.ps.length >= this.max) return null;
-    const p = { x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0, age: 0, life: 1, delay: 0, s: 2, c: 'gold', a: 1, m: 0, tw: 0, ph: Math.random() * TAU, grp: 0, turb: 0, fi: 0.08, fd: 0, end: 0 };
+    const p = { x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0, age: 0, life: 1, delay: 0, s: 2, c: 'gold', a: 1, m: 0, tw: 0, ph: Math.random() * TAU, grp: 0, turb: 0, fi: 0.08, fd: 0, end: 0, hn: 0, hi: 0 };
     Object.assign(p, o);
     this.ps.push(p);
     return p;
@@ -125,13 +109,15 @@ export class FX {
         ps.pop();
         continue;
       }
-      // remember the last few positions of streaking sparks (drawn as a fading tail)
-      if (p.trail && p.m !== M.HOLD) {
-        const h = p.hx || (p.hx = []);
-        h.push(p.x, p.y);
-        if (h.length > p.trail * 2) h.splice(0, 2);
-      } else if (p.hx && p.hx.length) {
-        p.hx.splice(0, 2);
+      // remember the last few positions of streaking sparks (drawn as a fading tail) in a fixed ring
+      // buffer: thousands of sparks run this every frame, so it must not allocate
+      if (p.trail) {
+        if (p.m === M.FREE || (p.m === M.SEEK && !(p.k >= 1))) {
+          const h = p.hx || (p.hx = new Float32Array(p.trail * 2));
+          h[p.hi * 2] = p.x; h[p.hi * 2 + 1] = p.y;
+          p.hi = (p.hi + 1) % p.trail;
+          if (p.hn < p.trail) p.hn++;
+        } else if (p.hn) p.hn--; // settled: the tail shrinks away
       }
       switch (p.m) {
         case M.FREE: {
@@ -261,13 +247,16 @@ export class FX {
       else if (p.ember && p.life !== Infinity) ember = L.clamp((la / p.life - 0.45) / 0.4, 0, 1);
       const a = al > 1 ? 1 : al;
       // the tail: older positions fade and thin out behind the star (only while it is fast enough to streak)
-      const h = p.hx;
-      if (h && h.length > 2 && Math.abs(h[0] - x) + Math.abs(h[1] - y) > s * 0.6) {
-        const n = h.length / 2;
-        for (let j = n & 1 ? 1 : 0; j < n - 1; j += 2) {
-          const k = (j + 1) / n, ts = s * (0.35 + 0.45 * k);
-          ctx.globalAlpha = a * k * k * 0.55;
-          ctx.drawImage(spr[ember > 0.5 ? 'amber' : c], h[j * 2] - ts / 2, h[j * 2 + 1] - ts / 2, ts, ts);
+      const n = p.hn;
+      if (n > 2) {
+        const h = p.hx, tr = p.trail, o = (p.hi - n + tr) % tr;
+        if (Math.abs(h[o * 2] - x) + Math.abs(h[o * 2 + 1] - y) > s * 0.6) {
+          // every other point, newest first (index n-1 is the star itself)
+          for (let j = n - 3; j >= 0; j -= 2) {
+            const q = ((o + j) % tr) * 2, k = (j + 1) / n, ts = s * (0.35 + 0.45 * k);
+            ctx.globalAlpha = a * k * k * 0.55;
+            ctx.drawImage(spr[ember > 0.5 ? 'amber' : c], h[q] - ts / 2, h[q + 1] - ts / 2, ts, ts);
+          }
         }
       }
       if (ember > 0) {
@@ -278,11 +267,6 @@ export class FX {
         ctx.globalAlpha = a * ember;
         const es = s * (1 - ember * 0.35);
         ctx.drawImage(spr.amber, x - es / 2, y - es / 2, es, es);
-      } else if (p.halo) {
-        // bloom: a burning star lights the smoke around it, so it sits in a soft haze
-        const hs = s * HAZE;
-        ctx.globalAlpha = a;
-        ctx.drawImage(spr.haze[c], x - hs / 2, y - hs / 2, hs, hs);
       } else {
         ctx.globalAlpha = a;
         ctx.drawImage(spr[c], x - s / 2, y - s / 2, s, s);
@@ -345,7 +329,7 @@ export class FX {
         x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: o.g ?? 90 * u, drag: o.drag ?? 1.5,
         life: rand(life[0], life[1]), s: rand(o.s?.[0] ?? 0.9, o.s?.[1] ?? 1.5) * u,
         c: o.c2 && Math.random() < (o.mix ?? 0.15) ? o.c2 : c,
-        trail: o.trail ?? 6, heat: rand(0.06, 0.14), ember: true, glit: o.glit ?? 0.08, fi: 0.01, grp: o.grp || 0,
+        trail: o.trail ?? 4, heat: rand(0.06, 0.14), ember: true, glit: o.glit ?? 0.08, fi: 0.01, grp: o.grp || 0,
       });
     }
   }
@@ -394,7 +378,6 @@ export class FX {
         s: rand(1.1, 1.9) * u * (o.size || 1), c: Math.random() < (o.mix ?? 0.22) ? o.c2 || 'white' : o.c || 'gold',
         tw: o.tw ?? rand(2, 7), grp: o.grp || 0, delay: o.delay || 0,
         trail: o.trail || 0, heat: o.heat || 0, glit: o.glit || 0,
-halo: o.halo || 0,
       });
     }
   }
