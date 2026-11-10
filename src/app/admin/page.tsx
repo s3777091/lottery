@@ -2,7 +2,7 @@
 
 import CardPreview from './card-preview';
 import { departmentChances, rebalanceDepartment } from '@/lib/eligibility';
-import { DesktopIcon, EyeClosedIcon, EyeOpenIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
+import { DesktopIcon, ExitIcon, EyeClosedIcon, EyeOpenIcon, PlusIcon, ResetIcon } from '@radix-ui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { EffectId, EffectMode, EffectPlanEntry, ListMode, Settings, Person, State } from '@/lib/types';
 import { LIST_LABEL, LIST_MODES, EFFECT_LABEL, SINGLE_DRAW_CHOICES, TIERS, isWinnerCount, plannedEffect, plannedWinnerCount } from '@/lib/types';
@@ -28,10 +28,10 @@ function SignedInUser() {
     window.location.href = '/login';
   }
   return (
-    <div className="admin-user">
-      {email && <span className="muted">{email}</span>}
-      <button className="btn small ghost" onClick={logout}>Đăng xuất</button>
-    </div>
+    <>
+      {email && <span className="toolbar-email" title={email}>{email}</span>}
+      <button className="icon-btn" onClick={logout} aria-label="Đăng xuất" title="Đăng xuất"><ExitIcon width={16} height={16} aria-hidden="true" /></button>
+    </>
   );
 }
 
@@ -112,10 +112,11 @@ export default function AdminPage() {
           <h1>Quản trị quay số</h1>
           <p className="muted">{LIST_LABEL[state.mode]}: {state.people.length.toLocaleString('vi-VN')} người · {state.winners.length} đã trúng</p>
         </div>
-        <ListSwitch state={state} onChange={setState} say={say} />
-        <div className="admin-user">
+        <div className="admin-toolbar">
+          <ListSwitch state={state} onChange={setState} say={say} />
+          <span className="toolbar-sep" aria-hidden="true" />
           <SignedInUser />
-          <a className="btn projector-link" href="/lottery" target="_blank" rel="noreferrer" aria-label="Mở màn chiếu" title="Mở màn chiếu"><DesktopIcon width={24} height={24} aria-hidden="true" /></a>
+          <a className="icon-btn gold" href="/lottery" target="_blank" rel="noreferrer" aria-label="Mở màn chiếu" title="Mở màn chiếu"><DesktopIcon width={18} height={18} aria-hidden="true" /></a>
         </div>
       </header>
       <nav className="admin-tabs">
