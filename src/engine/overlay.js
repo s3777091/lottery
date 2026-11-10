@@ -327,12 +327,13 @@ export class Overlay {
     };
     fw.shots.forEach((s, i) => {
       if (!names.length) return;
-      const shot = make(names[i % names.length], { x: s.x, y: s.y, to: s.to, size: s.size || 84, maxW: 640, pts: 1300 });
-      this.shots.push({ ...s, ...shot, grp: 100 + i, hold: s.hold || 1.5 });
+      const shot = make(names[i % names.length], { x: s.x, y: s.y, to: s.to, size: s.size || 84, maxW: 640, pts: 900 });
+      // "at": where the clip's own shell breaks, when the name hangs beside it rather than on top of it
+      this.shots.push({ ...s, ...shot, at: s.at && { x: s.at.x * W, y: s.at.y * H }, grp: 100 + i, hold: s.hold || 1.5 });
     });
     const w = fw.winner;
     const win = hideWinnerName ? { text: '', pts: [], x: w.x * W, y: w.y * H }
-      : make(winner, { x: w.x, y: w.y, size: 140, maxW: 1200, pts: 3800 });
+      : make(winner, { x: w.x, y: w.y, size: 140, maxW: 1200, pts: 2600 });
     this.shots.push({ ...w, ...win, c: w.c || 'cyan', grp: 99, hold: (w.release ?? w.t + 1.5) - w.t, isWinner: true, hand: w.hand && { x: w.hand.x * W, y: w.hand.y * H } });
   }
 
@@ -348,16 +349,29 @@ export class Overlay {
     // move the sparks of drifting names along with their firework
     const shift = {};
     for (const s of this.shots || []) {
-      if (!s.to || !s.fired || s.done) continue;
-      const p = this.shotPos(s, t);
-      if (s.px !== undefined) shift[s.grp] = [p.x - s.px, p.y - s.py];
-      s.px = p.x; s.py = p.y;
+      if (!s.fired || s.done) continue;
+      let dx = 0, dy = 0;
+      if (s.to) {
+        const p = this.shotPos(s, t);
+        if (s.px !== undefined) { dx = p.x - s.px; dy = p.y - s.py; }
+        s.px = p.x; s.py = p.y;
+      }
+      // a real shaped shell never hangs still: its stars slowly droop under gravity
+      const age = t - s.t - 0.3;
+      if (age > 0) {
+        const sag = (s.isWinner ? 5 : 11) * u * Math.min(1, age) * dt;
+        s.sag = (s.sag || 0) + sag;
+        dy += sag;
+      }
+      if (dx || dy) shift[s.grp] = [dx, dy];
     }
     for (const p of Object.keys(shift).length ? this.fx.ps : []) {
       const d = shift[p.grp];
       if (!d) continue;
       p.x += d[0]; p.y += d[1];
       if (p.tx !== undefined) { p.tx += d[0]; p.ty += d[1]; }
+      // the tail moves with the name too: only a star's own motion should streak
+      if (p.hx) for (let j = 0; j < p.hx.length; j += 2) { p.hx[j] += d[0]; p.hx[j + 1] += d[1]; }
     }
     for (const s of this.shots || []) {
       if (s.rocket && !s.launched && t >= s.t - s.rocket.dur) {
@@ -371,15 +385,18 @@ export class Overlay {
         // after a skip, old shots are dropped instead of all bursting at once
         if (t - s.t > 0.6) { s.done = true; continue; }
         const win = s.isWinner;
-        // the shell itself: a ring of sparks and a shock ring, then the sparks that spell the name
-        this.fx.burst(s.x, s.y, { c: s.c, c2: 'white', n: win ? 220 : 90, spd: (win ? 560 : 300) * u, tw: 1, g: 60 * u, life: [0.7, 1.4], s: [1.1, 2.1] });
-        this.fx.ring(s.x, s.y, s.c, (win ? 420 : 170) * u, 0.7, win ? 5 : 3);
-        if (win) { this.fx.flash = 0.2; this.fx.flashRGB = '170,240,255'; }
+        // the shell itself: streaking stars thrown out over a sphere, then the stars that spell the name
+        // the stars leave from the clip's own shell, so the name is born out of a real explosion
+        const o = s.at || s;
+        this.fx.shell(o.x, o.y, { c: s.c, c2: 'white', n: win ? 260 : 110, spd: (win ? 520 : 290) * u, glow: win ? 70 : 34, life: win ? [1.3, 2] : [1, 1.6] });
+        if (win) { this.fx.flash = 0.1; this.fx.flashRGB = '170,240,255'; }
         if (s.pts.length) {
-          this.fx.textBurst(s.x, s.y, s.pts, s.x, s.y, { c: win ? 'gold' : s.c, c2: 'white', grp: s.grp, size: win ? 1.25 : 0.95, mix: s.mix ?? (win ? 0.15 : 0.5),
-            // snap into the letters quickly, like a shaped shell, so the name reads while it hangs
-            spd: win ? 620 : 420, seekAt: [0.1, 0.24], ks: [2.4, 3.4] });
+          this.fx.textBurst(o.x, o.y, s.pts, s.x, s.y, { c: win ? 'gold' : s.c, c2: 'white', grp: s.grp, size: win ? 1.35 : 1.15, mix: s.mix ?? (win ? 0.1 : 0.15),
+            // snap into the letters quickly, like a shaped shell, so the name reads while it hangs;
+            // the stars streak on their way out and burn unevenly once they are in place
+            spd: win ? 620 : 420, seekAt: [0.1, 0.24], ks: [2.4, 3.4], trail: 3, heat: 0.12, tw: 0, glit: 0.1, halo: true });
         }
+        s.sag = 0;
       }
       // while the name hangs in the sky its letters crackle and shed tiny falling sparks
       if (s.fired && !s.done && s.pts.length && t > s.t + 0.45) {
@@ -389,8 +406,8 @@ export class Overlay {
           n -= 1;
           const j = ((Math.random() * np) | 0) * 2;
           this.fx.add({
-            x: pos.x + s.pts[j], y: pos.y + s.pts[j + 1], vx: rand(-25, 25) * u, vy: rand(-10, 40) * u, g: 120 * u, drag: 1.2,
-            life: rand(0.35, 0.9), s: rand(0.6, 1.2) * u, c: Math.random() < 0.6 ? 'white' : s.isWinner ? 'gold' : s.c, tw: rand(14, 26),
+            x: pos.x + s.pts[j], y: pos.y + (s.sag || 0) + s.pts[j + 1], vx: rand(-25, 25) * u, vy: rand(-10, 40) * u, g: 120 * u, drag: 1.2,
+            life: rand(0.35, 0.9), s: rand(0.6, 1.2) * u, c: Math.random() < 0.6 ? 'white' : s.isWinner ? 'gold' : s.c, glit: 0.35, trail: 3, ember: true,
           });
         }
       }
@@ -402,7 +419,7 @@ export class Overlay {
           this.fx.fadeGroup(s.grp, 1.8, { vx: dx * 0.9, vy: dy * 0.9, g: 10 * u, turb: 40 });
         } else {
           // the letters break up and rain down like the embers of a real shell
-          this.fx.fadeGroup(s.grp, 1.6, { vx: 0, vy: 15 * u, g: 70 * u, turb: 25 });
+          this.fx.fadeGroup(s.grp, 1.1, { vx: 0, vy: 40 * u, g: 150 * u, turb: 25 });
         }
       }
     }

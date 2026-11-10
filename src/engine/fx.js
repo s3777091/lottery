@@ -32,10 +32,26 @@ function glowSprite(rgb, core = 0.12, size = 64) {
   x.fillRect(0, 0, size, size);
   return c;
 }
+// The same star with the faint haze it lights around itself (bloom), drawn HAZE times larger than
+// a plain sprite: one draw instead of a star plus a separate glow.
+const HAZE = 3;
+function hazeSprite(rgb, size = 128) {
+  const c = L.canvas(size, size), x = c.getContext('2d');
+  const g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.12 / HAZE, `rgba(${rgb},1)`);
+  g.addColorStop(0.32 / HAZE, `rgba(${rgb},0.4)`);
+  g.addColorStop(0.62 / HAZE, `rgba(${rgb},0.12)`);
+  g.addColorStop(0.45, `rgba(${rgb},0.05)`);
+  g.addColorStop(1, `rgba(${rgb},0)`);
+  x.fillStyle = g;
+  x.fillRect(0, 0, size, size);
+  return c;
+}
 export function sprites() {
   if (!SPR) {
-    SPR = {};
-    for (const k in COLORS) SPR[k] = glowSprite(COLORS[k]);
+    SPR = { haze: {} };
+    for (const k in COLORS) { SPR[k] = glowSprite(COLORS[k]); SPR.haze[k] = hazeSprite(COLORS[k]); }
     SPR.soft = glowSprite('255,190,90', 0.02, 128);
   }
   return SPR;
@@ -108,6 +124,14 @@ export class FX {
         ps[i] = ps[ps.length - 1];
         ps.pop();
         continue;
+      }
+      // remember the last few positions of streaking sparks (drawn as a fading tail)
+      if (p.trail && p.m !== M.HOLD) {
+        const h = p.hx || (p.hx = []);
+        h.push(p.x, p.y);
+        if (h.length > p.trail * 2) h.splice(0, 2);
+      } else if (p.hx && p.hx.length) {
+        p.hx.splice(0, 2);
       }
       switch (p.m) {
         case M.FREE: {
@@ -224,12 +248,45 @@ export class FX {
         if (r > 0.55) al *= (1 - r) / 0.45;
       }
       if (p.tw) al *= 0.55 + 0.45 * Math.sin(t * p.tw + p.ph);
+      // glitter: a real star burns unevenly, dropping out for a frame now and then
+      if (p.glit && Math.random() < p.glit) al *= 0.2;
       if (al <= 0.01) continue;
       let x = p.x, y = p.y;
       if (p.m === M.HOLD) { x += Math.sin(t * 2.1 + p.ph) * 0.7; y += Math.cos(t * 1.7 + p.ph) * 0.7; }
       const s = p.s * 4;
-      ctx.globalAlpha = al > 1 ? 1 : al;
-      ctx.drawImage(spr[p.c], x - s / 2, y - s / 2, s, s);
+      // colour of the burning star: white-hot when it leaves the shell, then its own colour,
+      // cooling to an orange ember before it dies
+      let c = p.c, ember = 0;
+      if (p.heat && la < p.heat) c = 'white';
+      else if (p.ember && p.life !== Infinity) ember = L.clamp((la / p.life - 0.45) / 0.4, 0, 1);
+      const a = al > 1 ? 1 : al;
+      // the tail: older positions fade and thin out behind the star (only while it is fast enough to streak)
+      const h = p.hx;
+      if (h && h.length > 2 && Math.abs(h[0] - x) + Math.abs(h[1] - y) > s * 0.6) {
+        const n = h.length / 2;
+        for (let j = n & 1 ? 1 : 0; j < n - 1; j += 2) {
+          const k = (j + 1) / n, ts = s * (0.35 + 0.45 * k);
+          ctx.globalAlpha = a * k * k * 0.55;
+          ctx.drawImage(spr[ember > 0.5 ? 'amber' : c], h[j * 2] - ts / 2, h[j * 2 + 1] - ts / 2, ts, ts);
+        }
+      }
+      if (ember > 0) {
+        if (ember < 1) {
+          ctx.globalAlpha = a * (1 - ember);
+          ctx.drawImage(spr[c], x - s / 2, y - s / 2, s, s);
+        }
+        ctx.globalAlpha = a * ember;
+        const es = s * (1 - ember * 0.35);
+        ctx.drawImage(spr.amber, x - es / 2, y - es / 2, es, es);
+      } else if (p.halo) {
+        // bloom: a burning star lights the smoke around it, so it sits in a soft haze
+        const hs = s * HAZE;
+        ctx.globalAlpha = a;
+        ctx.drawImage(spr.haze[c], x - hs / 2, y - hs / 2, hs, hs);
+      } else {
+        ctx.globalAlpha = a;
+        ctx.drawImage(spr[c], x - s / 2, y - s / 2, s, s);
+      }
     }
     for (const r of this.rockets) {
       const s = 46 * L.view.u;
@@ -270,6 +327,25 @@ export class FX {
         g: o.g ?? 70 * L.view.u, drag: o.drag ?? 1.3, life: rand(life[0], life[1]),
         s: rand(s[0], s[1]) * L.view.u, c: o.c2 && Math.random() < (o.mix ?? 0.3) ? o.c2 : o.c || 'gold',
         tw: o.tw ? rand(10, 22) : 0, grp: o.grp || 0,
+      });
+    }
+  }
+  // A real aerial shell: stars thrown out evenly over a sphere (so, seen flat, they crowd at the rim),
+  // each burning white-hot, then in colour, then cooling to an ember while gravity and air drag bend
+  // its streak downward; a short glow lights the air where it broke. No outlines, no rings.
+  shell(x, y, o = {}) {
+    const u = L.view.u, n = o.n || 120, spd = o.spd || 300 * u, life = o.life || [1.1, 1.7];
+    const c = o.c || 'gold';
+    this.add({ x, y, s: (o.glow || 26) * u, c, life: 0.45, fi: 0.02, a: 0.55 });
+    this.add({ x, y, s: (o.glow || 26) * 0.45 * u, c: 'white', life: 0.22, fi: 0.01, a: 0.8 });
+    for (let i = 0; i < n; i++) {
+      const z = rand(-1, 1), a = rand(TAU), r = Math.sqrt(1 - z * z);
+      const v = spd * r * rand(0.9, 1.06);
+      this.add({
+        x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: o.g ?? 90 * u, drag: o.drag ?? 1.5,
+        life: rand(life[0], life[1]), s: rand(o.s?.[0] ?? 0.9, o.s?.[1] ?? 1.5) * u,
+        c: o.c2 && Math.random() < (o.mix ?? 0.15) ? o.c2 : c,
+        trail: o.trail ?? 6, heat: rand(0.06, 0.14), ember: true, glit: o.glit ?? 0.08, fi: 0.01, grp: o.grp || 0,
       });
     }
   }
@@ -316,7 +392,9 @@ export class FX {
         tx: cx + pts[i] * sc, ty: cy + pts[i + 1] * sc,
         seekAt: rand(s0, s1), ks: rand(k0, k1), life: Infinity,
         s: rand(1.1, 1.9) * u * (o.size || 1), c: Math.random() < (o.mix ?? 0.22) ? o.c2 || 'white' : o.c || 'gold',
-        tw: rand(2, 7), grp: o.grp || 0, delay: o.delay || 0,
+        tw: o.tw ?? rand(2, 7), grp: o.grp || 0, delay: o.delay || 0,
+        trail: o.trail || 0, heat: o.heat || 0, glit: o.glit || 0,
+halo: o.halo || 0,
       });
     }
   }

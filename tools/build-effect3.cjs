@@ -12,8 +12,10 @@ const only = process.argv[4];
 if (!source) { console.error('Usage: node tools/build-effect3.cjs <ffmpeg> <FirstVide.mp4> [effect-id]'); process.exit(1); }
 
 // Scene cuts of the source film (30 fps): 2413 → 3148 → 3892 frames.
+// `skip`: the seek at 2413 still lands on the last frame of the previous scene (a character shot), so the
+// female clip replaces its first frame with a copy of the next one; clip length and tracking times stay the same.
 const CLIPS = {
-  'effect3-female': { start: 2413 / 30, frames: 3148 - 2413, tail: 3.2, slow: 1.5 },
+  'effect3-female': { start: 2413 / 30, frames: 3148 - 2413, tail: 3.2, slow: 1.5, skip: 1 },
   'effect3-male': { start: 3148 / 30, frames: 3892 - 3148, tail: 3.2, slow: 1.5 },
 };
 const FADE = 1; // seconds of cross-fade at the loop seam
@@ -31,7 +33,8 @@ const h264 = (crf) => ['-c:v', 'libx264', '-preset', 'medium', '-crf', String(cr
 for (const [id, c] of Object.entries(CLIPS).filter(([x]) => !only || x === only)) {
   const dur = c.frames / 30;
   // 1) Full HD master, frame-exact cut with its soundtrack
-  run(['-ss', c.start.toFixed(4), '-i', source, '-t', dur.toFixed(4), '-map', '0:v:0', '-map', '0:a?', '-vf', DELOGO, ...h264(16),
+  const clean = c.skip ? `,trim=start_frame=${c.skip},setpts=PTS-STARTPTS,tpad=start=${c.skip}:start_mode=clone` : '';
+  run(['-ss', c.start.toFixed(4), '-i', source, '-t', dur.toFixed(4), '-map', '0:v:0', '-map', '0:a?', '-vf', DELOGO + clean, ...h264(16),
     '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', out(`${id}.mp4`)]);
   // 2) 4K and 2K show clips
   for (const [q, w, h, crf] of [['4k', 3840, 2160, 18], ['2k', 2560, 1440, 18]]) {

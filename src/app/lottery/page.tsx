@@ -22,7 +22,7 @@ type OverlayApi = {
 
 // Part of every /videos and /effects URL, which production serves as immutable: bump it whenever a clip,
 // idle loop, poster or tracking file is re-rendered, or projectors keep playing the cached copy.
-const ASSET_V = '12';
+const ASSET_V = '13';
 
 export default function LotteryPage() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -196,7 +196,8 @@ export default function LotteryPage() {
     if (absentPending.current) return;
     if (phaseRef.current !== 'result' && phaseRef.current !== 'playing') return;
     if (phaseRef.current === 'playing' && !revealed) return;
-    Object.values(videoRefs.current).forEach((v) => v?.pause());
+    // Rewind every clip so none keeps its last frame (e.g. the previous draw's ending) around for the next spin.
+    Object.values(videoRefs.current).forEach((v) => { if (v) { v.pause(); v.currentTime = 0; } });
     idleVideoRef.current?.pause();
     setIdleLoopPlaying(false);
     overlay.current?.clear();
@@ -297,7 +298,7 @@ export default function LotteryPage() {
           <video
             key={id}
             ref={(el) => { videoRefs.current[id] = el; }}
-            className={`fx-video${active === id && phase !== 'idle' ? ' on' : ''}`}
+            className={`fx-video${active === id && (phase === 'playing' || phase === 'result') ? ' on' : ''}`}
             src={`/videos/${id}-${videoQuality}.mp4?v=${ASSET_V}`}
             preload={active === id ? 'auto' : 'metadata'}
             playsInline
